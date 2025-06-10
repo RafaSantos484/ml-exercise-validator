@@ -1,6 +1,7 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
 import type { Constructor, Exercise } from "../../types";
 import {
+  CNNHighPlankPointsFullBodyModel,
   FCNNHighPlankAnglesFullBodyModel,
   FCNNHighPlankPointsFullBodyModel,
 } from "./fcnn.class";
@@ -20,6 +21,7 @@ export class ModelFactory {
     high_plank: {
       "FCNN - Ângulos": FCNNHighPlankAnglesFullBodyModel,
       "FCNN - Pontos": FCNNHighPlankPointsFullBodyModel,
+      "CNN - Pontos": CNNHighPlankPointsFullBodyModel,
     },
   };
 

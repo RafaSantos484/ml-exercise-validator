@@ -123,6 +123,10 @@ export class FCNNHighPlankPointsFullBodyModel extends FCNNModel {
     return `${predictedClass}(${maxProb.toFixed(2)})`;
   }
 }
+export class CNNHighPlankPointsFullBodyModel extends FCNNHighPlankPointsFullBodyModel {
+  modelPath =
+    "src/assets/models/cnn-high-plank-points/full-body-model/model.json";
+}
 
 export class FCNNHighPlankAnglesFullBodyModel extends FCNNModel {
   modelPath =

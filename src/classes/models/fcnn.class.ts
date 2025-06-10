@@ -94,7 +94,25 @@ export class FCNNPointsFullBodyModel extends FCNNModel {
     const points = utilLandmarks.map((ld) =>
       basis.toLocal(new Point3d(landmarks[ld])).toList()
     );
-    const inputTensor = tensor([points]);
+
+    const leftShoulderPoint = new Point3d(
+      landmarks[landmarksDict.LEFT_SHOULDER]
+    );
+    const rightShoulderPoint = new Point3d(
+      landmarks[landmarksDict.RIGHT_SHOULDER]
+    );
+    const shoulderMidPoint = leftShoulderPoint.getMidPoint(rightShoulderPoint);
+    const leftAnklePoint = new Point3d(landmarks[landmarksDict.LEFT_ANKLE]);
+    const rightAnklePoint = new Point3d(landmarks[landmarksDict.RIGHT_ANKLE]);
+    const ankleMidPoint = leftAnklePoint.getMidPoint(rightAnklePoint);
+    const height = shoulderMidPoint.subtract(ankleMidPoint).norm();
+    const normalizedPoints = points.map((p) => [
+      p[0] / height,
+      p[1] / height,
+      p[2] / height,
+    ]);
+
+    const inputTensor = tensor([normalizedPoints]);
     return this.model.predict(inputTensor) as Tensor;
   }
 }

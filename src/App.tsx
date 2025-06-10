@@ -10,7 +10,6 @@ import {
   Select,
 } from "@mui/material";
 import DrafterFactory from "./classes/drafters/drafter-factory.class";
-import ValidatorFactory from "./classes/validators/validator-factory.class";
 import { Landmarker } from "./classes/landmarker.class";
 import { exercisesTranslator, type Exercise } from "./types";
 import { GitHub } from "@mui/icons-material";
@@ -19,6 +18,7 @@ import "./App.scss";
 
 // import PlankImage from "./assets/plank.png";
 import PushUpImage from "./assets/push-up.png";
+import { ModelFactory } from "./classes/models/model.class";
 // import SidePlankImage from "./assets/side-plank.png";
 
 const exerciseImages: Record<Exercise, string> = {
@@ -35,6 +35,7 @@ function GlobalCircularProgress() {
 
 type CameraComponentProps = {
   selectedExercise: Exercise;
+  selectedModelName: string;
   close: () => void;
 };
 
@@ -45,7 +46,11 @@ function getScreenDim() {
   };
 }
 
-function CameraComponent({ selectedExercise, close }: CameraComponentProps) {
+function CameraComponent({
+  selectedExercise,
+  selectedModelName,
+  close,
+}: CameraComponentProps) {
   const [screenDim, setScreenDim] = useState(getScreenDim());
   const [isLoading, setIsLoading] = useState(true);
   const [exerciseValidation, setExerciseValidation] = useState<string | null>(
@@ -61,11 +66,11 @@ function CameraComponent({ selectedExercise, close }: CameraComponentProps) {
     let isMounted = true;
     const video = videoRef.current!;
     const canvas = canvasRef.current!;
+    const model = ModelFactory.getModel(selectedExercise, selectedModelName);
 
     const initPoseLandmarker = async () => {
       await Landmarker.load();
-      const validator = ValidatorFactory.getValidator(selectedExercise);
-      await validator.load();
+      await model.load();
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" } },
         audio: false,
@@ -111,16 +116,8 @@ function CameraComponent({ selectedExercise, close }: CameraComponentProps) {
       const drafter = DrafterFactory.getInstance().getDrafter(selectedExercise);
       drafter.draw(results.landmarks[0], canvas, ctx);
 
-      const validator = ValidatorFactory.getValidator(selectedExercise);
-      const validation = validator.validate(results.worldLandmarks[0]);
-      if (!validation) {
-        setExerciseValidation(validation);
-      } else {
-        const [predictedClass, predictedScore] = validation;
-        setExerciseValidation(
-          `${predictedClass}(${predictedScore.toFixed(2)})`
-        );
-      }
+      const validation = model.predict(results.worldLandmarks[0]);
+      setExerciseValidation(validation);
     };
 
     initPoseLandmarker();
@@ -132,7 +129,7 @@ function CameraComponent({ selectedExercise, close }: CameraComponentProps) {
       stream?.getTracks().forEach((track) => track.stop());
       // Landmarker.close();
     };
-  }, [selectedExercise]);
+  }, [selectedExercise, selectedModelName]);
 
   useEffect(() => {
     const onResize = () => setScreenDim(getScreenDim());
@@ -193,6 +190,7 @@ export default function App() {
 
   const [selectedExercise, setSelecteExercise] =
     useState<Exercise>("high_plank");
+  const [selectedModel, setSelectedModel] = useState("");
 
   const isCameraOpenRef = useRef(isCameraOpen);
 
@@ -209,6 +207,10 @@ export default function App() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  useEffect(() => {
+    setSelectedModel("");
+  }, [selectedExercise]);
 
   return (
     <div className="app-container">
@@ -252,8 +254,42 @@ export default function App() {
               )}
             </Select>
           </FormControl>
+          <FormControl fullWidth sx={{ maxWidth: "350px" }}>
+            <InputLabel id="select-modelname-label">Modelo</InputLabel>
+            <Select
+              labelId="select-modelname-label"
+              value={selectedModel}
+              label="Exercício"
+              onChange={(e) => {
+                setSelectedModel(e.target.value);
+              }}
+            >
+              {ModelFactory.getExerciseModelNames(selectedExercise).map(
+                (modelName) => (
+                  <MenuItem key={modelName} value={modelName}>
+                    <div className="select-menu-item">
+                      <span>{modelName}</span>
+                      {/*<img
+                        src={exerciseImages[excercise as Exercise]}
+                        alt={translatedExercise}
+                      /> */}
+                    </div>
+                  </MenuItem>
+                )
+              )}
+            </Select>
+          </FormControl>
 
-          <Button variant="contained" onClick={() => setIsCameraOpen(true)}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (!selectedModel) {
+                alert("Selecione o modelo do exercício");
+              } else {
+                setIsCameraOpen(true);
+              }
+            }}
+          >
             Abrir Câmera
           </Button>
         </div>
@@ -261,6 +297,7 @@ export default function App() {
       {isCameraOpen && (
         <CameraComponent
           selectedExercise={selectedExercise}
+          selectedModelName={selectedModel}
           close={() => setIsCameraOpen(false)}
         />
       )}

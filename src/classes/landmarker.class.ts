@@ -1,8 +1,4 @@
-import {
-  FilesetResolver,
-  PoseLandmarker,
-  type ImageSource,
-} from "@mediapipe/tasks-vision";
+import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 
 export class Landmarker {
   private static poseLandmarker: PoseLandmarker | null = null;
@@ -21,23 +17,6 @@ export class Landmarker {
         numPoses: 1,
       });
     }
-  }
-
-  private static getImageDataFromVideoSync(
-    videoElement: HTMLVideoElement
-  ): ImageData {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) {
-      throw new Error("Não foi possível obter o contexto 2D do canvas");
-    }
-
-    canvas.width = videoElement.videoWidth;
-    canvas.height = videoElement.videoHeight;
-
-    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-    return ctx.getImageData(0, 0, canvas.width, canvas.height);
   }
 
   public static detect(videoEl: HTMLVideoElement, timestamp: number) {

@@ -20,7 +20,7 @@ class L2 {
     return regularizers.l1l2(config);
   }
 }
-serialization.registerClass(L2);
+serialization.registerClass(L2 as any);
 
 abstract class FCNNModel implements Model {
   abstract modelPath: string;
@@ -31,11 +31,12 @@ abstract class FCNNModel implements Model {
       this.model = await loadLayersModel(this.modelPath);
     }
   }
-  abstract predict(landmarks: Landmark[]): Tensor | null;
+  abstract predict(landmarks: Landmark[]): string | null;
 }
 
-export class FCNNPointsFullBodyModel extends FCNNModel {
-  modelPath = "src/assets/models/fcnn-points/full-body-model/model.json";
+export class FCNNHighPlankPointsFullBodyModel extends FCNNModel {
+  modelPath =
+    "src/assets/models/fcnn-high-plank-points/full-body-model/model.json";
 
   private static getCustomBasis(landmarks: Landmark[]) {
     const left_wrist_point = new Point3d(
@@ -70,13 +71,13 @@ export class FCNNPointsFullBodyModel extends FCNNModel {
     return new CoordinateSystem3D(foot_index_mid_point, xDir, yDir);
   }
 
-  predict(landmarks: Landmark[]): Tensor | null {
+  predict(landmarks: Landmark[]): string | null {
     if (!this.model) {
       this.load();
       return null;
     }
 
-    const basis = FCNNPointsFullBodyModel.getCustomBasis(landmarks);
+    const basis = FCNNHighPlankPointsFullBodyModel.getCustomBasis(landmarks);
     const utilLandmarks = [
       landmarksDict.LEFT_WRIST,
       landmarksDict.RIGHT_WRIST,
@@ -113,14 +114,21 @@ export class FCNNPointsFullBodyModel extends FCNNModel {
     ]);
 
     const inputTensor = tensor([normalizedPoints]);
-    return this.model.predict(inputTensor) as Tensor;
+    const outputTensor = this.model.predict(inputTensor) as Tensor;
+
+    const predictionArray = outputTensor.dataSync();
+    const maxProb = Math.max(...predictionArray);
+    const predictedIndex = predictionArray.indexOf(maxProb);
+    const predictedClass = ["Incorreto", "Correto"][predictedIndex];
+    return `${predictedClass}(${maxProb.toFixed(2)})`;
   }
 }
 
-export class FCNNAnglesFullBodyModel extends FCNNModel {
-  modelPath = "src/assets/models/fcnn-angles/full-body-model/model.json";
+export class FCNNHighPlankAnglesFullBodyModel extends FCNNModel {
+  modelPath =
+    "src/assets/models/fcnn-high-plank-angles/full-body-model/model.json";
 
-  predict(landmarks: Landmark[]): Tensor | null {
+  predict(landmarks: Landmark[]): string | null {
     if (!this.model) {
       this.load();
       return null;
@@ -156,6 +164,12 @@ export class FCNNAnglesFullBodyModel extends FCNNModel {
       Point3d.get_angle_from_joints_triplet(landmarks, tp)
     );
     const inputTensor = tensor([features]);
-    return this.model.predict(inputTensor) as Tensor;
+    const outputTensor = this.model.predict(inputTensor) as Tensor;
+
+    const predictionArray = outputTensor.dataSync();
+    const maxProb = Math.max(...predictionArray);
+    const predictedIndex = predictionArray.indexOf(maxProb);
+    const predictedClass = ["Incorreto", "Correto"][predictedIndex];
+    return `${predictedClass}(${maxProb.toFixed(2)})`;
   }
 }

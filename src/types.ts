@@ -2,7 +2,7 @@ export type Exercise = "high_plank";
 export const exercisesTranslator: Record<Exercise, string> = {
   high_plank: "Prancha Alta",
 };
-export type Constructor<T> = new (...args: unknown[]) => T;
+export type Constructor<T> = new (...args: any[]) => T;
 
 export const landmarksDict = {
   NOSE: 0,

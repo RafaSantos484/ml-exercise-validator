@@ -7,7 +7,7 @@ import CoordinateSystem3D from "../../coordinate-system-3d.class";
 
 export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
   modelPath =
-    "public/models/high-plank/fcnn-points/full-body-model/model.json";
+    "models/high-plank/fcnn-points/full-body-model/model.json";
 
   private static getCustomBasis(landmarks: Landmark[]) {
     const left_wrist_point = new Point3d(
@@ -96,12 +96,12 @@ export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
 }
 export class CnnHighPlankPointsModel extends FcnnHighPlankPointsModel {
   modelPath =
-    "public/models/high-plank/cnn-points/full-body-model/model.json";
+    "models/high-plank/cnn-points/full-body-model/model.json";
 }
 
 export class FcnnHighPlankAnglesModel extends NeuralNetworkModel {
   modelPath =
-    "public/models/high-plank/fcnn-angles/full-body-model/model.json";
+    "models/high-plank/fcnn-angles/full-body-model/model.json";
 
   predict(landmarks: Landmark[]): string | null {
     if (!this.model) {

@@ -4,7 +4,7 @@ import type { LandmarkKey } from "../../../types";
 import { KnnModel } from "../knn.class";
 
 export class KnnHighPlankAnglesModel extends KnnModel {
-  modelPath = "public/models/high-plank/knn-angles/full_body_model.json";
+  modelPath = "models/high-plank/knn-angles/full_body_model.json";
 
   predict(landmarks: Landmark[]): string | null {
     if (!this.model) {

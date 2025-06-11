@@ -1,42 +1,13 @@
-import {
-  loadLayersModel,
-  regularizers,
-  serialization,
-  tensor,
-  Tensor,
-  type LayersModel,
-} from "@tensorflow/tfjs";
-import type { Model } from "./model.class";
-import { landmarksDict, type LandmarkKey } from "../../types";
-import Point3d from "../point3d.class";
+import { tensor, Tensor } from "@tensorflow/tfjs";
 import type { Landmark } from "@mediapipe/tasks-vision";
-import type { L1L2Args } from "@tensorflow/tfjs-layers/dist/regularizers";
-import CoordinateSystem3D from "../coordinate-system-3d.class";
+import Point3d from "../../point3d.class";
+import { landmarksDict, type LandmarkKey } from "../../../types";
+import { NeuralNetworkModel } from "../neural-network.class";
+import CoordinateSystem3D from "../../coordinate-system-3d.class";
 
-class L2 {
-  static className = "L2";
-
-  constructor(config: L1L2Args) {
-    return regularizers.l1l2(config);
-  }
-}
-serialization.registerClass(L2 as any);
-
-abstract class FcnnModel implements Model {
-  abstract modelPath: string;
-  protected model: LayersModel | null = null;
-
-  public async load() {
-    if (!this.model) {
-      this.model = await loadLayersModel(this.modelPath);
-    }
-  }
-  abstract predict(landmarks: Landmark[]): string | null;
-}
-
-export class FcnnHighPlankPointsFullBodyModel extends FcnnModel {
+export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
   modelPath =
-    "src/assets/models/fcnn-high-plank-points/full-body-model/model.json";
+    "src/assets/models/high-plank/fcnn-points/full-body-model/model.json";
 
   private static getCustomBasis(landmarks: Landmark[]) {
     const left_wrist_point = new Point3d(
@@ -77,7 +48,7 @@ export class FcnnHighPlankPointsFullBodyModel extends FcnnModel {
       return null;
     }
 
-    const basis = FcnnHighPlankPointsFullBodyModel.getCustomBasis(landmarks);
+    const basis = FcnnHighPlankPointsModel.getCustomBasis(landmarks);
     const utilLandmarks = [
       landmarksDict.LEFT_WRIST,
       landmarksDict.RIGHT_WRIST,
@@ -123,14 +94,14 @@ export class FcnnHighPlankPointsFullBodyModel extends FcnnModel {
     return `${predictedClass}(${maxProb.toFixed(2)})`;
   }
 }
-export class CnnHighPlankPointsFullBodyModel extends FcnnHighPlankPointsFullBodyModel {
+export class CnnHighPlankPointsModel extends FcnnHighPlankPointsModel {
   modelPath =
-    "src/assets/models/cnn-high-plank-points/full-body-model/model.json";
+    "src/assets/models/high-plank/cnn-points/full-body-model/model.json";
 }
 
-export class FcnnHighPlankAnglesFullBodyModel extends FcnnModel {
+export class FcnnHighPlankAnglesModel extends NeuralNetworkModel {
   modelPath =
-    "src/assets/models/fcnn-high-plank-angles/full-body-model/model.json";
+    "src/assets/models/high-plank/fcnn-angles/full-body-model/model.json";
 
   predict(landmarks: Landmark[]): string | null {
     if (!this.model) {

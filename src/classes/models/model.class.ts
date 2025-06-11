@@ -1,11 +1,11 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
 import type { Constructor, Exercise } from "../../types";
+import { KnnHighPlankAnglesModel } from "./high_plank/knn-high-plank.class";
 import {
-  CnnHighPlankPointsFullBodyModel,
-  FcnnHighPlankAnglesFullBodyModel,
-  FcnnHighPlankPointsFullBodyModel,
-} from "./fcnn.class";
-import { KnnHighPlankAnglesFullBodyModel } from "./knn.class";
+  CnnHighPlankPointsModel,
+  FcnnHighPlankAnglesModel,
+  FcnnHighPlankPointsModel,
+} from "./high_plank/neural-network-high-plank.class";
 
 export abstract class Model {
   abstract load(): Promise<void>;
@@ -20,10 +20,10 @@ export class ModelFactory {
     Record<string, ModelChild>
   > = {
     high_plank: {
-      "FCNN - Ângulos": FcnnHighPlankAnglesFullBodyModel,
-      "FCNN - Pontos": FcnnHighPlankPointsFullBodyModel,
-      "CNN - Pontos": CnnHighPlankPointsFullBodyModel,
-      "KNN - Ângulos": KnnHighPlankAnglesFullBodyModel,
+      "FCNN - Ângulos": FcnnHighPlankAnglesModel,
+      "FCNN - Pontos": FcnnHighPlankPointsModel,
+      "CNN - Pontos": CnnHighPlankPointsModel,
+      "KNN - Ângulos": KnnHighPlankAnglesModel,
     },
   };
 

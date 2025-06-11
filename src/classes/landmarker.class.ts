@@ -6,12 +6,11 @@ export class Landmarker {
   public static async load() {
     if (!this.poseLandmarker) {
       const vision = await FilesetResolver.forVisionTasks(
-        "src/assets/models/landmarker/wasm"
+        "public/models/landmarker/wasm"
       );
       this.poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: {
-          modelAssetPath:
-            "src/assets/models/landmarker/pose_landmarker_full.task",
+          modelAssetPath: "public/models/landmarker/pose_landmarker_full.task",
         },
         runningMode: "VIDEO",
         numPoses: 1,

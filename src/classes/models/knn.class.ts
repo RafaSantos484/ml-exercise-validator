@@ -70,17 +70,24 @@ export class KNNClassifier {
   private vote(neighbors: { label: number; distance: number }[]): number {
     const votes: Record<number, number> = {};
 
+    const winner = { label: 0, votes: 0 };
     for (const { label, distance } of neighbors) {
       let weight = 1;
       if (this.weights === "distance") {
-        weight = distance === 0 ? Number.MAX_SAFE_INTEGER : 1 / distance;
+        weight = distance === 0 ? Infinity : 1 / distance;
       }
 
-      votes[label] = (votes[label] || 0) + weight;
+      if (!(label in votes)) {
+        votes[label] = 0;
+      }
+      votes[label] += weight;
+      if (votes[label] > winner.votes) {
+        winner.label = label;
+        winner.votes = votes[label];
+      }
     }
 
-    // Retornar o rótulo com maior soma de pesos
-    return Number(Object.entries(votes).sort((a, b) => b[1] - a[1])[0][0]);
+    return winner.label;
   }
 
   predict(input: number[]): string {

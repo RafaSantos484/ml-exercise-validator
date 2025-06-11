@@ -6,8 +6,7 @@ import { NeuralNetworkModel } from "../neural-network.class";
 import CoordinateSystem3D from "../../coordinate-system-3d.class";
 
 export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
-  modelPath =
-    "models/high-plank/fcnn-points/full-body-model/model.json";
+  modelPath = "models/high-plank/fcnn-points/full-body-model/model.json";
 
   private static getCustomBasis(landmarks: Landmark[]) {
     const left_wrist_point = new Point3d(
@@ -67,26 +66,8 @@ export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
       basis.toLocal(new Point3d(landmarks[ld])).toList()
     );
 
-    const leftShoulderPoint = new Point3d(
-      landmarks[landmarksDict.LEFT_SHOULDER]
-    );
-    const rightShoulderPoint = new Point3d(
-      landmarks[landmarksDict.RIGHT_SHOULDER]
-    );
-    const shoulderMidPoint = leftShoulderPoint.getMidPoint(rightShoulderPoint);
-    const leftAnklePoint = new Point3d(landmarks[landmarksDict.LEFT_ANKLE]);
-    const rightAnklePoint = new Point3d(landmarks[landmarksDict.RIGHT_ANKLE]);
-    const ankleMidPoint = leftAnklePoint.getMidPoint(rightAnklePoint);
-    const height = shoulderMidPoint.subtract(ankleMidPoint).norm();
-    const normalizedPoints = points.map((p) => [
-      p[0] / height,
-      p[1] / height,
-      p[2] / height,
-    ]);
-
-    const inputTensor = tensor([normalizedPoints]);
+    const inputTensor = tensor([points]);
     const outputTensor = this.model.predict(inputTensor) as Tensor;
-
     const predictionArray = outputTensor.dataSync();
     const maxProb = Math.max(...predictionArray);
     const predictedIndex = predictionArray.indexOf(maxProb);
@@ -95,13 +76,11 @@ export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
   }
 }
 export class CnnHighPlankPointsModel extends FcnnHighPlankPointsModel {
-  modelPath =
-    "models/high-plank/cnn-points/full-body-model/model.json";
+  modelPath = "models/high-plank/cnn-points/full-body-model/model.json";
 }
 
 export class FcnnHighPlankAnglesModel extends NeuralNetworkModel {
-  modelPath =
-    "models/high-plank/fcnn-angles/full-body-model/model.json";
+  modelPath = "models/high-plank/fcnn-angles/full-body-model/model.json";
 
   predict(landmarks: Landmark[]): string | null {
     if (!this.model) {

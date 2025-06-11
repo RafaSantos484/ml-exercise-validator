@@ -10,7 +10,7 @@ import {
   Select,
 } from "@mui/material";
 import DrafterFactory from "./classes/drafters/drafter-factory.class";
-import { Landmarker } from "./classes/landmarker.class";
+import { Landmarker } from "./classes/models/landmarker.class";
 import { exercisesTranslator, type Exercise } from "./types";
 import { GitHub } from "@mui/icons-material";
 

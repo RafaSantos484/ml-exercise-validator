@@ -22,7 +22,7 @@ class L2 {
 }
 serialization.registerClass(L2 as any);
 
-abstract class FCNNModel implements Model {
+abstract class FcnnModel implements Model {
   abstract modelPath: string;
   protected model: LayersModel | null = null;
 
@@ -34,7 +34,7 @@ abstract class FCNNModel implements Model {
   abstract predict(landmarks: Landmark[]): string | null;
 }
 
-export class FCNNHighPlankPointsFullBodyModel extends FCNNModel {
+export class FcnnHighPlankPointsFullBodyModel extends FcnnModel {
   modelPath =
     "src/assets/models/fcnn-high-plank-points/full-body-model/model.json";
 
@@ -77,7 +77,7 @@ export class FCNNHighPlankPointsFullBodyModel extends FCNNModel {
       return null;
     }
 
-    const basis = FCNNHighPlankPointsFullBodyModel.getCustomBasis(landmarks);
+    const basis = FcnnHighPlankPointsFullBodyModel.getCustomBasis(landmarks);
     const utilLandmarks = [
       landmarksDict.LEFT_WRIST,
       landmarksDict.RIGHT_WRIST,
@@ -123,12 +123,12 @@ export class FCNNHighPlankPointsFullBodyModel extends FCNNModel {
     return `${predictedClass}(${maxProb.toFixed(2)})`;
   }
 }
-export class CNNHighPlankPointsFullBodyModel extends FCNNHighPlankPointsFullBodyModel {
+export class CnnHighPlankPointsFullBodyModel extends FcnnHighPlankPointsFullBodyModel {
   modelPath =
     "src/assets/models/cnn-high-plank-points/full-body-model/model.json";
 }
 
-export class FCNNHighPlankAnglesFullBodyModel extends FCNNModel {
+export class FcnnHighPlankAnglesFullBodyModel extends FcnnModel {
   modelPath =
     "src/assets/models/fcnn-high-plank-angles/full-body-model/model.json";
 

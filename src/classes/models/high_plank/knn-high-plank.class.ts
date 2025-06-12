@@ -15,10 +15,13 @@ export class KnnHighPlankAnglesModel extends KnnModel {
     const triplets: [LandmarkKey, LandmarkKey, LandmarkKey][] = [
       ["LEFT_WRIST", "LEFT_ELBOW", "LEFT_SHOULDER"],
       ["RIGHT_WRIST", "RIGHT_ELBOW", "RIGHT_SHOULDER"],
+      ["LEFT_WRIST", "LEFT_ELBOW", "RIGHT_ELBOW"],
+      ["RIGHT_WRIST", "RIGHT_ELBOW", "LEFT_ELBOW"],
       ["LEFT_WRIST", "LEFT_SHOULDER", "RIGHT_SHOULDER"],
-      ["LEFT_ELBOW", "LEFT_SHOULDER", "RIGHT_ELBOW"],
+      ["RIGHT_WRIST", "RIGHT_SHOULDER", "LEFT_SHOULDER"],
       ["LEFT_ELBOW", "LEFT_SHOULDER", "RIGHT_SHOULDER"],
       ["RIGHT_ELBOW", "RIGHT_SHOULDER", "LEFT_SHOULDER"],
+
       ["LEFT_WRIST", "LEFT_SHOULDER", "LEFT_HIP"],
       ["RIGHT_WRIST", "RIGHT_SHOULDER", "RIGHT_HIP"],
 

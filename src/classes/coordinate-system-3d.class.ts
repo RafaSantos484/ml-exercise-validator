@@ -28,10 +28,6 @@ export default class CoordinateSystem3D {
     const yLocal = relative.dot(this.yDir.normalize());
     const zLocal = relative.dot(this.zDir.normalize());
 
-    return new Point3d([
-      xLocal / this.xDir.norm(),
-      yLocal / this.yDir.norm(),
-      zLocal / this.zDir.norm(),
-    ]);
+    return new Point3d([xLocal, yLocal, zLocal]);
   }
 }

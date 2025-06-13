@@ -4,7 +4,6 @@ import { KnnHighPlankAnglesModel } from "./high_plank/knn-high-plank.class";
 import {
   CnnHighPlankPointsModel,
   FcnnHighPlankAnglesModel,
-  FcnnHighPlankPointsModel,
 } from "./high_plank/neural-network-high-plank.class";
 
 export abstract class Model {
@@ -21,7 +20,6 @@ export class ModelFactory {
   > = {
     high_plank: {
       "FCNN - Ângulos": FcnnHighPlankAnglesModel,
-      "FCNN - Pontos": FcnnHighPlankPointsModel,
       "CNN - Pontos": CnnHighPlankPointsModel,
       "KNN - Ângulos": KnnHighPlankAnglesModel,
     },

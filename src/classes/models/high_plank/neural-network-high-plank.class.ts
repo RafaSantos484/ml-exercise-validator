@@ -5,10 +5,10 @@ import { landmarksDict, type LandmarkKey } from "../../../types";
 import { NeuralNetworkModel } from "../neural-network.class";
 import CoordinateSystem3D from "../../coordinate-system-3d.class";
 
-export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
-  modelPath = "models/high-plank/fcnn-points/full-body-model/model.json";
+export class CnnHighPlankPointsModel extends NeuralNetworkModel {
+  modelPath = "models/high-plank/cnn-points/full-body-model/model.json";
 
-  /*private static getCustomBasis(landmarks: Landmark[]) {
+  private getCustomBasis(landmarks: Landmark[]) {
     const left_wrist_point = new Point3d(
       landmarks[landmarksDict["LEFT_WRIST"]]
     );
@@ -39,7 +39,7 @@ export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
     const xDir = wrist_mid_point.subtract(foot_index_mid_point);
     const yDir = shoulder_mid_point.subtract(wrist_mid_point);
     return new CoordinateSystem3D(foot_index_mid_point, xDir, yDir);
-  }*/
+  }
 
   predict(landmarks: Landmark[]): string | null {
     if (!this.model) {
@@ -47,8 +47,8 @@ export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
       return null;
     }
 
-    // const basis = FcnnHighPlankPointsModel.getCustomBasis(landmarks);
-    const basis = CoordinateSystem3D.canonicalSystem;
+    const basis = this.getCustomBasis(landmarks);
+    // const basis = CoordinateSystem3D.canonicalSystem;
     const utilLandmarks = [
       landmarksDict.LEFT_WRIST,
       landmarksDict.RIGHT_WRIST,
@@ -76,9 +76,6 @@ export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
     return `${predictedClass}(${maxProb.toFixed(2)})`;
   }
 }
-export class CnnHighPlankPointsModel extends FcnnHighPlankPointsModel {
-  modelPath = "models/high-plank/cnn-points/full-body-model/model.json";
-}
 
 export class FcnnHighPlankAnglesModel extends NeuralNetworkModel {
   modelPath = "models/high-plank/fcnn-angles/full-body-model/model.json";
@@ -92,12 +89,8 @@ export class FcnnHighPlankAnglesModel extends NeuralNetworkModel {
     const triplets: [LandmarkKey, LandmarkKey, LandmarkKey][] = [
       ["LEFT_WRIST", "LEFT_ELBOW", "LEFT_SHOULDER"],
       ["RIGHT_WRIST", "RIGHT_ELBOW", "RIGHT_SHOULDER"],
-      ["LEFT_WRIST", "LEFT_ELBOW", "RIGHT_ELBOW"],
-      ["RIGHT_WRIST", "RIGHT_ELBOW", "LEFT_ELBOW"],
       ["LEFT_WRIST", "LEFT_SHOULDER", "RIGHT_SHOULDER"],
       ["RIGHT_WRIST", "RIGHT_SHOULDER", "LEFT_SHOULDER"],
-      ["LEFT_ELBOW", "LEFT_SHOULDER", "RIGHT_SHOULDER"],
-      ["RIGHT_ELBOW", "RIGHT_SHOULDER", "LEFT_SHOULDER"],
 
       ["LEFT_WRIST", "LEFT_SHOULDER", "LEFT_HIP"],
       ["RIGHT_WRIST", "RIGHT_SHOULDER", "RIGHT_HIP"],
@@ -108,11 +101,7 @@ export class FcnnHighPlankAnglesModel extends NeuralNetworkModel {
       ["RIGHT_HIP", "RIGHT_KNEE", "RIGHT_ANKLE"],
       ["LEFT_ANKLE", "LEFT_HIP", "RIGHT_HIP"],
       ["RIGHT_ANKLE", "RIGHT_HIP", "LEFT_HIP"],
-      ["LEFT_ANKLE", "LEFT_KNEE", "RIGHT_KNEE"],
-      ["RIGHT_ANKLE", "RIGHT_KNEE", "LEFT_KNEE"],
 
-      ["LEFT_FOOT_INDEX", "LEFT_WRIST", "LEFT_ELBOW"],
-      ["RIGHT_FOOT_INDEX", "RIGHT_WRIST", "RIGHT_ELBOW"],
       ["LEFT_FOOT_INDEX", "LEFT_WRIST", "LEFT_SHOULDER"],
       ["RIGHT_FOOT_INDEX", "RIGHT_WRIST", "RIGHT_SHOULDER"],
       ["LEFT_FOOT_INDEX", "LEFT_WRIST", "RIGHT_WRIST"],

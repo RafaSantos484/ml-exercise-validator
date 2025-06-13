@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { type PoseLandmarkerResult } from "@mediapipe/tasks-vision";
+import {
+  type NormalizedLandmark,
+  type PoseLandmarkerResult,
+} from "@mediapipe/tasks-vision";
 import {
   Button,
   CircularProgress,
@@ -19,6 +22,7 @@ import "./App.scss";
 // import PlankImage from "./assets/plank.png";
 import PushUpImage from "./assets/push-up.png";
 import { ModelFactory } from "./classes/models/model.class";
+import Webcam from "react-webcam";
 // import SidePlankImage from "./assets/side-plank.png";
 
 const exerciseImages: Record<Exercise, string> = {
@@ -27,7 +31,7 @@ const exerciseImages: Record<Exercise, string> = {
 
 function GlobalCircularProgress() {
   return (
-    <div className="global-circular-progress">
+    <div className="fullscreen-container">
       <CircularProgress size="10rem" />
     </div>
   );
@@ -39,47 +43,68 @@ type CameraComponentProps = {
   close: () => void;
 };
 
-function getScreenDim() {
-  return {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
-}
-
 function CameraComponent({
   selectedExercise,
   selectedModelName,
   close,
 }: CameraComponentProps) {
-  const [screenDim, setScreenDim] = useState(getScreenDim());
-  const [isLoading, setIsLoading] = useState(true);
+  const [screenDim, setScreenDim] = useState({ width: 0, height: 0 });
+  const [isLoadingVideo, setIsLoadingVideo] = useState(true);
+  const [isLoadingModel, setIsLoadingModel] = useState(true);
   const [exerciseValidation, setExerciseValidation] = useState<string | null>(
     null
   );
+  const [landmarks, setLandmarks] = useState<NormalizedLandmark[]>([]);
+  const [connections, setConnections] = useState<
+    [NormalizedLandmark, NormalizedLandmark][]
+  >([]);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafId = useRef<number | null>(null);
+  const webcamRef = useRef<Webcam>(null);
+
+  const rafIdRef = useRef<number | null>(null);
   const lastVideoTimeRef = useRef<number>(-1);
 
   useEffect(() => {
+    let looping = true;
+
+    const loopFunc = function () {
+      if (!looping) return;
+
+      if (webcamRef.current?.stream?.active) {
+        setIsLoadingVideo(false);
+      } else {
+        setTimeout(function () {
+          loopFunc();
+        }, 100);
+      }
+    };
+    loopFunc();
+
+    return () => {
+      looping = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isLoadingVideo) return;
+
     let isMounted = true;
-    const video = videoRef.current!;
-    const canvas = canvasRef.current!;
-    const model = ModelFactory.getModel(selectedExercise, selectedModelName);
+    const rafId = rafIdRef.current;
+    const video = webcamRef.current!.video!;
+    const stream = webcamRef.current!.stream!;
 
     const initPoseLandmarker = async () => {
       await Landmarker.load();
-      await model.load();
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
-      video.srcObject = stream;
-      video.onloadeddata = () => {
-        video.play();
-        renderLoop();
+      await ModelFactory.loadModel(selectedExercise, selectedModelName);
+
+      video.onloadeddata = function () {
+        video.play().then(() => {
+          setIsLoadingModel(false);
+          renderLoop();
+        });
       };
+      video.srcObject = stream;
+      // video.ontimeupdate = renderLoop;
     };
 
     const renderLoop = () => {
@@ -90,33 +115,40 @@ function CameraComponent({
         if (video.currentTime !== lastVideoTimeRef.current) {
           const result = Landmarker.detect(video, now);
           if (result) {
+            setScreenDim({
+              width: video.clientWidth,
+              height: video.clientHeight,
+            });
+
             drawResults(result);
           }
           lastVideoTimeRef.current = video.currentTime;
         }
       }
 
-      rafId.current = requestAnimationFrame(renderLoop);
+      rafIdRef.current = requestAnimationFrame(renderLoop);
     };
 
     const drawResults = (results: PoseLandmarkerResult) => {
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      setIsLoading(false);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
       if (!results.landmarks.length || !results.worldLandmarks.length) {
+        setLandmarks([]);
+        setConnections([]);
         setExerciseValidation(null);
         return;
       }
 
-      const drafter = DrafterFactory.getInstance().getDrafter(selectedExercise);
-      drafter.draw(results.landmarks[0], canvas, ctx);
+      const [utilLandmarks, conenctions] = DrafterFactory.getDraftInfo(
+        selectedExercise,
+        results.landmarks[0]
+      );
+      setLandmarks(utilLandmarks);
+      setConnections(conenctions);
 
-      const validation = model.predict(results.worldLandmarks[0]);
+      const validation = ModelFactory.predict(
+        selectedExercise,
+        selectedModelName,
+        results.worldLandmarks[0]
+      );
       setExerciseValidation(validation);
     };
 
@@ -124,64 +156,91 @@ function CameraComponent({
 
     return () => {
       isMounted = false;
-      cancelAnimationFrame(rafId.current ?? 0);
+      cancelAnimationFrame(rafId ?? 0);
       const stream = video.srcObject as MediaStream;
       stream?.getTracks().forEach((track) => track.stop());
       // Landmarker.close();
     };
-  }, [selectedExercise, selectedModelName]);
+  }, [selectedExercise, selectedModelName, isLoadingVideo]);
 
-  useEffect(() => {
-    const onResize = () => setScreenDim(getScreenDim());
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
+  const loadedEverything = !isLoadingVideo && !isLoadingModel;
   return (
-    <>
-      <video ref={videoRef} style={{ display: "none" }} playsInline muted />
-      <canvas
-        ref={canvasRef}
-        width={screenDim.width}
-        height={screenDim.height}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-        }}
+    <div className="camera-container">
+      <Webcam
+        ref={webcamRef}
+        style={{ display: loadedEverything ? undefined : "none" }}
+        audio={false}
+        videoConstraints={{ facingMode: { ideal: "environment" } }}
       />
 
-      {isLoading ? (
+      {!loadedEverything ? (
         <GlobalCircularProgress />
       ) : (
-        <div className="exercise-feedback-container">
-          {(() => {
-            let color = "";
-            let message = "";
-            if (exerciseValidation === null) {
-              color = "yellow";
-              message = "Aguardando posição";
-            } else if (exerciseValidation === "") {
-              color = "green";
-              message = "Exercício correto!";
-            } else {
-              color = "red";
-              message = exerciseValidation;
-            }
-            return <p style={{ color }}>{message}</p>;
-          })()}
+        <>
+          {landmarks.map((landmark, idx) => (
+            <div
+              key={`point-${idx}`}
+              className="landmark-dot"
+              style={{
+                top: `${landmark.y * screenDim.height}px`,
+                left: `${landmark.x * screenDim.width}px`,
+              }}
+            ></div>
+          ))}
+          {connections.map(([ld1, ld2], idx) => {
+            const x1 = ld1.x * screenDim.width;
+            const y1 = ld1.y * screenDim.height;
+            const x2 = ld2.x * screenDim.width;
+            const y2 = ld2.y * screenDim.height;
 
-          <Button
-            variant="contained"
-            onClick={() => {
-              close();
-            }}
-          >
-            Fechar Câmera
-          </Button>
-        </div>
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const length = Math.sqrt(dx ** 2 + dy ** 2);
+            const angle = Math.atan2(dy, dx);
+
+            return (
+              <div
+                key={`line-${idx}`}
+                className="landmark-line"
+                style={{
+                  width: `${length}px`,
+                  transform: `rotate(${angle}rad)`,
+                  top: `${y1}px`,
+                  left: `${x1}px`,
+                }}
+              />
+            );
+          })}
+
+          <div className="exercise-feedback-container">
+            {(() => {
+              let color = "";
+              let message = "";
+              if (exerciseValidation === null) {
+                color = "yellow";
+                message = "Aguardando posição";
+              } else if (exerciseValidation === "") {
+                color = "green";
+                message = "Exercício correto!";
+              } else {
+                color = "red";
+                message = exerciseValidation;
+              }
+              return <p style={{ color }}>{message}</p>;
+            })()}
+
+            <Button
+              variant="contained"
+              onClick={() => {
+                close();
+              }}
+            >
+              Fechar Câmera
+            </Button>
+          </div>
+        </>
       )}
-    </>
+    </div>
   );
 }
 
@@ -215,7 +274,7 @@ export default function App() {
   return (
     <div className="app-container">
       {!isCameraOpen && (
-        <div className="select-exercise-container">
+        <>
           <IconButton
             className="corner-icon"
             onClick={() => {
@@ -229,70 +288,72 @@ export default function App() {
 
           <h1>Validador de Exercícios</h1>
 
-          <FormControl fullWidth sx={{ maxWidth: "350px" }}>
-            <InputLabel id="select-exercise-label">Exercício</InputLabel>
-            <Select
-              labelId="select-exercise-label"
-              value={selectedExercise}
-              label="Exercício"
-              onChange={(e) => {
-                setSelecteExercise(e.target.value as Exercise);
-              }}
-            >
-              {Object.entries(exercisesTranslator).map(
-                ([excercise, translatedExercise]) => (
-                  <MenuItem key={excercise} value={excercise}>
-                    <div className="select-menu-item">
-                      <span>{translatedExercise}</span>
-                      <img
-                        src={exerciseImages[excercise as Exercise]}
-                        alt={translatedExercise}
-                      />
-                    </div>
-                  </MenuItem>
-                )
-              )}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth sx={{ maxWidth: "350px" }}>
-            <InputLabel id="select-modelname-label">Modelo</InputLabel>
-            <Select
-              labelId="select-modelname-label"
-              value={selectedModel}
-              label="Exercício"
-              onChange={(e) => {
-                setSelectedModel(e.target.value);
-              }}
-            >
-              {ModelFactory.getExerciseModelNames(selectedExercise).map(
-                (modelName) => (
-                  <MenuItem key={modelName} value={modelName}>
-                    <div className="select-menu-item">
-                      <span>{modelName}</span>
-                      {/*<img
+          <div className="select-exercise-container">
+            <FormControl fullWidth>
+              <InputLabel id="select-exercise-label">Exercício</InputLabel>
+              <Select
+                labelId="select-exercise-label"
+                value={selectedExercise}
+                label="Exercício"
+                onChange={(e) => {
+                  setSelecteExercise(e.target.value as Exercise);
+                }}
+              >
+                {Object.entries(exercisesTranslator).map(
+                  ([excercise, translatedExercise]) => (
+                    <MenuItem key={excercise} value={excercise}>
+                      <div className="select-menu-item">
+                        <span>{translatedExercise}</span>
+                        <img
+                          src={exerciseImages[excercise as Exercise]}
+                          alt={translatedExercise}
+                        />
+                      </div>
+                    </MenuItem>
+                  )
+                )}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel id="select-modelname-label">Modelo</InputLabel>
+              <Select
+                labelId="select-modelname-label"
+                value={selectedModel}
+                label="Exercício"
+                onChange={(e) => {
+                  setSelectedModel(e.target.value);
+                }}
+              >
+                {ModelFactory.getExerciseModelNames(selectedExercise).map(
+                  (modelName) => (
+                    <MenuItem key={modelName} value={modelName}>
+                      <div className="select-menu-item">
+                        <span>{modelName}</span>
+                        {/*<img
                         src={exerciseImages[excercise as Exercise]}
                         alt={translatedExercise}
                       /> */}
-                    </div>
-                  </MenuItem>
-                )
-              )}
-            </Select>
-          </FormControl>
+                      </div>
+                    </MenuItem>
+                  )
+                )}
+              </Select>
+            </FormControl>
 
-          <Button
-            variant="contained"
-            onClick={() => {
-              if (!selectedModel) {
-                alert("Selecione o modelo do exercício");
-              } else {
-                setIsCameraOpen(true);
-              }
-            }}
-          >
-            Abrir Câmera
-          </Button>
-        </div>
+            <Button
+              variant="contained"
+              onClick={() => {
+                if (!selectedModel) {
+                  alert("Selecione o modelo do exercício");
+                } else {
+                  setIsCameraOpen(true);
+                }
+              }}
+            >
+              Abrir Câmera
+            </Button>
+          </div>
+        </>
       )}
       {isCameraOpen && (
         <CameraComponent

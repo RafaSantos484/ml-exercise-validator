@@ -47,7 +47,8 @@ export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
       return null;
     }
 
-    const basis = FcnnHighPlankPointsModel.getCustomBasis(landmarks);
+    // const basis = FcnnHighPlankPointsModel.getCustomBasis(landmarks);
+    const basis = CoordinateSystem3D.canonicalSystem;
     const utilLandmarks = [
       landmarksDict.LEFT_WRIST,
       landmarksDict.RIGHT_WRIST,

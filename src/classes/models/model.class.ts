@@ -33,7 +33,7 @@ export class ModelFactory {
     return Object.keys(this.modelsPerExercise[exercise]);
   }
 
-  public static getModel(exercise: Exercise, modelName: string) {
+  private static getModel(exercise: Exercise, modelName: string) {
     if (!this.models[exercise]) {
       this.models[exercise] = {};
     }
@@ -44,5 +44,14 @@ export class ModelFactory {
     }
 
     return this.models[exercise][modelName];
+  }
+
+  static async loadModel(exercise: Exercise, modelName: string) {
+    await this.getModel(exercise, modelName).load();
+  }
+
+  static predict(exercise: Exercise, modelName: string, landmarks: Landmark[]) {
+    const model = this.getModel(exercise, modelName);
+    return model.predict(landmarks);
   }
 }

@@ -8,7 +8,7 @@ import CoordinateSystem3D from "../../coordinate-system-3d.class";
 export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
   modelPath = "models/high-plank/fcnn-points/full-body-model/model.json";
 
-  private static getCustomBasis(landmarks: Landmark[]) {
+  /*private static getCustomBasis(landmarks: Landmark[]) {
     const left_wrist_point = new Point3d(
       landmarks[landmarksDict["LEFT_WRIST"]]
     );
@@ -39,7 +39,7 @@ export class FcnnHighPlankPointsModel extends NeuralNetworkModel {
     const xDir = wrist_mid_point.subtract(foot_index_mid_point);
     const yDir = shoulder_mid_point.subtract(wrist_mid_point);
     return new CoordinateSystem3D(foot_index_mid_point, xDir, yDir);
-  }
+  }*/
 
   predict(landmarks: Landmark[]): string | null {
     if (!this.model) {

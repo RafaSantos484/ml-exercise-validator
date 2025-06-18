@@ -2,6 +2,7 @@ import type { Landmark } from "@mediapipe/tasks-vision";
 import type { Constructor, Exercise } from "../../types";
 import { KnnHighPlankAnglesModel } from "./high_plank/knn-high-plank.class";
 import { FcnnHighPlankAnglesModel } from "./high_plank/neural-network-high-plank.class";
+import { RandomForestHighPlankAnglesModel } from "./high_plank/random-forest-high-plank.class";
 
 export abstract class Model {
   abstract load(): Promise<void>;
@@ -16,8 +17,9 @@ export class ModelFactory {
     Record<string, ModelChild>
   > = {
     high_plank: {
-      "FCNN": FcnnHighPlankAnglesModel,
-      "KNN": KnnHighPlankAnglesModel,
+      FCNN: FcnnHighPlankAnglesModel,
+      KNN: KnnHighPlankAnglesModel,
+      "Random Forest": RandomForestHighPlankAnglesModel,
     },
   };
 

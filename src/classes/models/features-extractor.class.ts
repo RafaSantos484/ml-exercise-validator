@@ -21,10 +21,7 @@ export class anglesExtractor {
     ],
   };
 
-  private static getAnglesCombinations(
-    landmarks: Landmark[],
-    points: LandmarkKey[]
-  ) {
+  static getAnglesCombinations(landmarks: Landmark[], points: LandmarkKey[]) {
     const triplets = Utils.getCombinations(points, 3);
     const angles = triplets.map((tp) =>
       Point3d.getAngleFromJointsTriplet(landmarks, tp)

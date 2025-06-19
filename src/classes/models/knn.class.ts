@@ -1,50 +1,27 @@
-import type { Landmark } from "@mediapipe/tasks-vision";
-import type { Model } from "./model.class";
+import { Model } from "./model.class";
 import Utils from "../utils.class";
-import type { LandmarkKey } from "../../types";
+import type { Landmark } from "@mediapipe/tasks-vision";
+import Point3d from "../point3d.class";
 
 type WeightStrategy = "uniform" | "distance";
-
-export type KnnJson = {
-  params: {
-    metric: "minkowski";
-    n_neighbors: number;
-    p: number;
-    weights: WeightStrategy;
-    train_test_split_seed: number;
-  };
-  classes: string[];
-  features: { angles: LandmarkKey[][] };
-  model_data: { X: number[][]; y: number[] };
+type KnnParams = {
+  metric: "minkowski";
+  n_neighbors: number;
+  p: number;
+  weights: WeightStrategy;
+  train_test_split_seed: number;
 };
+type KnnModelData = { X: number[][]; y: number[] };
+// type KnnJson = ClassifierJson<KnnParams, KnnModelData>;
 
-export class KNNClassifier {
-  modelJson: KnnJson;
-
-  constructor(modelJson: KnnJson) {
-    this.modelJson = modelJson;
-  }
-
-  private minkowskiDistance(a: number[], b: number[]): number {
-    if (a.length !== b.length) {
-      throw new Error("Vectors must be of same length");
-    }
-
-    const { p } = this.modelJson.params;
-    const sum = a.reduce(
-      (acc, val, i) => acc + Math.pow(Math.abs(val - b[i]), p),
-      0
-    );
-    return Math.pow(sum, 1 / p);
-  }
-
+export class KnnModel extends Model<KnnParams, KnnModelData> {
   private getNeighbors(input: number[]): { label: number; distance: number }[] {
     const { X, y } = this.modelJson.model_data;
     const k = this.modelJson.params.n_neighbors;
 
     return X.map((xVec, i) => ({
       label: y[i],
-      distance: this.minkowskiDistance(input, xVec),
+      distance: Utils.minkowskiDistance(input, xVec, this.modelJson.params.p),
     }))
       .sort((a, b) => a.distance - b.distance)
       .slice(0, k);
@@ -74,25 +51,13 @@ export class KNNClassifier {
     return winner.label;
   }
 
-  predict(input: number[]): string {
-    const neighbors = this.getNeighbors(input);
+  predict(landmarks: Landmark[]): string {
+    const x = this.modelJson.features.angles.map((triplet) =>
+      Point3d.getAngleFromPointsTriplet(landmarks, triplet)
+    );
+    const neighbors = this.getNeighbors(x);
     const prediction = this.vote(neighbors);
     const label = this.modelJson.classes[prediction];
     return Utils.translate(label);
   }
-}
-
-export abstract class KnnModel implements Model {
-  abstract modelPath: string;
-  protected model: KNNClassifier | null = null;
-
-  async load(): Promise<void> {
-    if (!this.model) {
-      const res = await fetch(this.modelPath);
-      const modelJson: KnnJson = await res.json();
-      this.model = new KNNClassifier(modelJson);
-    }
-  }
-
-  abstract predict(landmarks: Landmark[]): string | null;
 }

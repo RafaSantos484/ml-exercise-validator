@@ -19,11 +19,9 @@ import { GitHub } from "@mui/icons-material";
 
 import "./App.scss";
 
-// import PlankImage from "./assets/plank.png";
 import PushUpImage from "./assets/push-up.png";
-import { ModelFactory } from "./classes/models/model.class";
 import Webcam from "react-webcam";
-// import SidePlankImage from "./assets/side-plank.png";
+import { ModelFactory } from "./classes/models/model-factory.class";
 
 const exerciseImages: Record<Exercise, string> = {
   high_plank: PushUpImage,

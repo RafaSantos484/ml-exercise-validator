@@ -1,55 +1,31 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
-import type { Constructor, Exercise } from "../../types";
-import { KnnHighPlankAnglesModel } from "./high_plank/knn-high-plank.class";
-import { FcnnHighPlankAnglesModel } from "./high_plank/neural-network-high-plank.class";
-import { RandomForestHighPlankAnglesModel } from "./high_plank/random-forest-high-plank.class";
-import { LogisticRegressionHighPlankModel } from "./high_plank/logistic-regression-high-plank.class";
+import type { LandmarkKey } from "../../types";
 
-export abstract class Model {
-  abstract load(): Promise<void>;
-  abstract predict(landmarks: Landmark[]): string | null;
+export type ClassifierJson<P, M> = {
+  params: P;
+  features: { angles: LandmarkKey[][] };
+  classes: string[];
+  model_data: M;
+};
+
+/*
+export abstract class Classifier<P, M> {
+  modelJson: ClassifierJson<P, M>;
+
+  constructor(modelJson: ClassifierJson<P, M>) {
+    this.modelJson = modelJson;
+  }
+
+  abstract predict(x: number[]): string;
 }
+*/
 
-type ModelChild = Constructor<Model>;
+export abstract class Model<P, M> {
+  protected modelJson: ClassifierJson<P, M>;
 
-export class ModelFactory {
-  private static modelsPerExercise: Record<
-    Exercise,
-    Record<string, ModelChild>
-  > = {
-    high_plank: {
-      FCNN: FcnnHighPlankAnglesModel,
-      KNN: KnnHighPlankAnglesModel,
-      "Random Forest": RandomForestHighPlankAnglesModel,
-      "Regressão Logística": LogisticRegressionHighPlankModel,
-    },
-  };
-
-  private static models: Record<string, Record<string, Model>> = {};
-
-  public static getExerciseModelNames(exercise: Exercise) {
-    return Object.keys(this.modelsPerExercise[exercise]).sort();
+  constructor(modelJson: ClassifierJson<P, M>) {
+    this.modelJson = modelJson;
   }
 
-  private static getModel(exercise: Exercise, modelName: string) {
-    if (!this.models[exercise]) {
-      this.models[exercise] = {};
-    }
-    if (!this.models[exercise][modelName]) {
-      this.models[exercise][modelName] = new this.modelsPerExercise[exercise][
-        modelName
-      ]();
-    }
-
-    return this.models[exercise][modelName];
-  }
-
-  static async loadModel(exercise: Exercise, modelName: string) {
-    await this.getModel(exercise, modelName).load();
-  }
-
-  static predict(exercise: Exercise, modelName: string, landmarks: Landmark[]) {
-    const model = this.getModel(exercise, modelName);
-    return model.predict(landmarks);
-  }
+  abstract predict(landmarks: Landmark[]): string | null;
 }

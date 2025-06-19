@@ -1,6 +1,6 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
-import { anglesExtractor } from "../features-extractor.class";
 import { LogisticRegressionModel } from "../logistic-regression";
+import Point3d from "../../point3d.class";
 
 export class LogisticRegressionHighPlankModel extends LogisticRegressionModel {
   modelPath = "models/high-plank/logistic-regression/full_body_model.json";
@@ -11,9 +11,8 @@ export class LogisticRegressionHighPlankModel extends LogisticRegressionModel {
       return null;
     }
 
-    const angles = anglesExtractor.getAnglesCombinations(
-      landmarks,
-      this.points
+    const angles = this.model.modelJson.features.angles.map((triplet) =>
+      Point3d.getAngleFromPointsTriplet(landmarks, triplet)
     );
     return this.model.predict(angles);
   }

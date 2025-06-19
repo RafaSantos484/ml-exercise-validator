@@ -29,4 +29,15 @@ export default class Utils {
 
     return translationTable[str] ?? str;
   }
+
+  static sigmoid(z: number): number {
+    return 1 / (1 + Math.exp(-z));
+  }
+
+  static softmax(logits: number[]): number[] {
+    const max = Math.max(...logits); // evita overflow
+    const exps = logits.map((z) => Math.exp(z - max));
+    const sum = exps.reduce((a, b) => a + b, 0);
+    return exps.map((e) => e / sum);
+  }
 }

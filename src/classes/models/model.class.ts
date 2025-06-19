@@ -28,7 +28,7 @@ export class ModelFactory {
   private static models: Record<string, Record<string, Model>> = {};
 
   public static getExerciseModelNames(exercise: Exercise) {
-    return Object.keys(this.modelsPerExercise[exercise]);
+    return Object.keys(this.modelsPerExercise[exercise]).sort();
   }
 
   private static getModel(exercise: Exercise, modelName: string) {

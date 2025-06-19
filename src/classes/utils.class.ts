@@ -20,4 +20,13 @@ export default class Utils {
 
     return [...withFirst, ...withoutFirst];
   }
+
+  static translate(str: string) {
+    const translationTable: Record<string, string> = {
+      incorrect: "incorreto",
+      correct: "correto",
+    };
+
+    return translationTable[str] ?? str;
+  }
 }

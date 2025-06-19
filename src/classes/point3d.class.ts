@@ -75,7 +75,7 @@ export default class Point3d {
     )}, ${this.z.toFixed(fractionDigits)})`;
   }
 
-  public static getAngleFromJointsTriplet(
+  public static getAngleFromPointsTriplet(
     landmarks: Landmark[],
     triplet: LandmarkKey[],
     degrees: boolean = false,

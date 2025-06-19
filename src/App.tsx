@@ -288,8 +288,14 @@ export default function App() {
 
           <h1>Validador de Exercícios</h1>
 
-          <div className="select-exercise-container">
-            <FormControl fullWidth>
+          <form
+            className="select-exercise-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setIsCameraOpen(true);
+            }}
+          >
+            <FormControl fullWidth required>
               <InputLabel id="select-exercise-label">Exercício</InputLabel>
               <Select
                 labelId="select-exercise-label"
@@ -314,7 +320,7 @@ export default function App() {
                 )}
               </Select>
             </FormControl>
-            <FormControl fullWidth>
+            <FormControl fullWidth required>
               <InputLabel id="select-modelname-label">Modelo</InputLabel>
               <Select
                 labelId="select-modelname-label"
@@ -340,19 +346,10 @@ export default function App() {
               </Select>
             </FormControl>
 
-            <Button
-              variant="contained"
-              onClick={() => {
-                if (!selectedModel) {
-                  alert("Selecione o modelo do exercício");
-                } else {
-                  setIsCameraOpen(true);
-                }
-              }}
-            >
+            <Button variant="contained" type="submit">
               Abrir Câmera
             </Button>
-          </div>
+          </form>
         </>
       )}
       {isCameraOpen && (

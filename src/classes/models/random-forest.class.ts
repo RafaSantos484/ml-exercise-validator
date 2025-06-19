@@ -1,6 +1,7 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
 import type { Model } from "./model.class";
 import type { LandmarkKey } from "../../types";
+import Utils from "../utils.class";
 
 type TreeNode = {
   children_left: number[];
@@ -21,18 +22,16 @@ export type RandomForestJson = {
     min_samples_leaf: number;
     bootstrap: boolean;
   };
-  features: { points: LandmarkKey[] };
+  features: { angles: LandmarkKey[][] };
   classes: string[];
-  forest: Forest;
+  model_data: Forest;
 };
 
 class RandomForestClassifier {
-  private forest: Forest;
-  private classes: string[];
+  modelJson: RandomForestJson;
 
-  constructor(forest: Forest, classes: string[]) {
-    this.forest = forest;
-    this.classes = classes;
+  constructor(modelJson: RandomForestJson) {
+    this.modelJson = modelJson;
   }
 
   private predictTree(tree: TreeNode, x: number[]): number[] {
@@ -48,22 +47,20 @@ class RandomForestClassifier {
   }
 
   predict(x: number[]): string {
-    const numClasses = this.classes.length;
+    const forest = this.modelJson.model_data;
+    const { classes } = this.modelJson;
+    const numClasses = classes.length;
     const votes = new Array(numClasses).fill(0);
 
-    this.forest.forEach((tree) => {
+    forest.forEach((tree) => {
       const probs = this.predictTree(tree, x);
       const predicted = probs.indexOf(Math.max(...probs));
       votes[predicted]++;
     });
 
     const prediction = votes.indexOf(Math.max(...votes));
-    const label = this.classes[prediction];
-    const translator: Record<string, string> = {
-      incorrect: "Incorreto",
-      correct: "Correto",
-    };
-    return translator[label];
+    const label = classes[prediction];
+    return Utils.translate(label);
   }
 }
 
@@ -75,10 +72,8 @@ export abstract class RandomForestModel implements Model {
   async load(): Promise<void> {
     if (!this.model) {
       const res = await fetch(this.modelPath);
-      const modelDict: RandomForestJson = await res.json();
-      const { forest, classes, features } = modelDict;
-      this.points = features.points;
-      this.model = new RandomForestClassifier(forest, classes);
+      const modelJson: RandomForestJson = await res.json();
+      this.model = new RandomForestClassifier(modelJson);
     }
   }
 

@@ -1,12 +1,13 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
 import type { Exercise } from "../../types";
-import type { Model } from "./model.class";
+import { NeuralNetworkModel, type Model } from "./model.class";
 import { KnnModel } from "./knn.class";
 import Utils from "../utils.class";
 import { RandomForestModel } from "./random-forest.class";
 import { LogisticRegressionModel } from "./logistic-regression";
+import { loadLayersModel } from "@tensorflow/tfjs";
 
-type GenericModel = Model<any, any>;
+type GenericModel = Model<any, any> | NeuralNetworkModel;
 
 export class ModelFactory {
   private static modelsGettersPerExercise: Record<
@@ -14,7 +15,13 @@ export class ModelFactory {
     Record<string, () => Promise<GenericModel>>
   > = {
     high_plank: {
-      //FCNN: FcnnHighPlankAnglesModel,
+      FCNN: async () =>
+        new NeuralNetworkModel(
+          await loadLayersModel("models/high-plank/fcnn/model.json"),
+          await Utils.readJson(
+            "models/high-plank/fcnn/full_body_model_info.json"
+          )
+        ),
       KNN: async () =>
         new KnnModel(
           await Utils.readJson("models/high-plank/knn/full_body_model.json")

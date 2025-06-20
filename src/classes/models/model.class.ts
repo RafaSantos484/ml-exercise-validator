@@ -18,7 +18,7 @@ export abstract class Model<P, M> {
     this.modelJson = modelJson;
   }
 
-  abstract predict(landmarks: Landmark[]): string | null;
+  abstract predict(landmarks: Landmark[]): string;
 }
 
 type NeuralNetworkJson = {

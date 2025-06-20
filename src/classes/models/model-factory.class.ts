@@ -6,6 +6,7 @@ import Utils from "../utils.class";
 import { RandomForestModel } from "./random-forest.class";
 import { LogisticRegressionModel } from "./logistic-regression";
 import { loadLayersModel } from "@tensorflow/tfjs";
+import { SvmModel } from "./svm.class";
 
 type GenericModel = Model<any, any> | NeuralNetworkModel;
 
@@ -38,6 +39,10 @@ export class ModelFactory {
             "models/high-plank/logistic-regression/full_body_model.json"
           )
         ),
+      SVM: async () =>
+        new SvmModel(
+          await Utils.readJson("models/high-plank/svm/full_body_model.json")
+        ),
     },
   };
 
@@ -58,12 +63,11 @@ export class ModelFactory {
 
   static async loadModel(exercise: Exercise, modelName: string) {
     const model: GenericModel | undefined = this.models[exercise][modelName];
-    if (model) {
-      return;
+    if (!model) {
+      this.models[exercise][modelName] = await this.modelsGettersPerExercise[
+        exercise
+      ][modelName]();
     }
-    this.models[exercise][modelName] = await this.modelsGettersPerExercise[
-      exercise
-    ][modelName]();
   }
 
   static predict(exercise: Exercise, modelName: string, landmarks: Landmark[]) {

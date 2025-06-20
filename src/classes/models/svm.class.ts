@@ -1,6 +1,7 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
 import { Model } from "./model.class";
 import Point3d from "../point3d.class";
+import Utils from "../utils.class";
 
 type KernelType = "linear" | "poly" | "rbf" | "sigmoid";
 type SvmParams = {
@@ -86,6 +87,7 @@ export class SvmModel extends Model<SvmParams, SvmModelData> {
 
     const classLabels = this.modelJson.classes;
     const nClasses = classLabels.length;
+    let resultLabel = "";
 
     // Binary classification (same logic in both ovo/ovr)
     if (nClasses === 2) {
@@ -100,11 +102,10 @@ export class SvmModel extends Model<SvmParams, SvmModelData> {
           );
       }
       decision += intercept[0];
-      return decision > 0 ? classLabels[1] : classLabels[0];
+      resultLabel = decision > 0 ? classLabels[1] : classLabels[0];
     }
-
     // Multiclass OVO (One-vs-One)
-    if (decision_function_shape === "ovo") {
+    else if (decision_function_shape === "ovo") {
       const votes = new Array(nClasses).fill(0);
       let svIndex = 0;
       let pairIndex = 0;
@@ -142,11 +143,10 @@ export class SvmModel extends Model<SvmParams, SvmModelData> {
       }
 
       const predictedIndex = votes.indexOf(Math.max(...votes));
-      return classLabels[predictedIndex];
+      resultLabel = classLabels[predictedIndex];
     }
-
     // Multiclass OVR (One-vs-Rest)
-    if (decision_function_shape === "ovr") {
+    else if (decision_function_shape === "ovr") {
       const decisions: number[] = [];
 
       let svIndex = 0;
@@ -170,10 +170,12 @@ export class SvmModel extends Model<SvmParams, SvmModelData> {
 
       const predictedIndex = decisions.indexOf(Math.max(...decisions));
       return classLabels[predictedIndex];
+    } else {
+      throw new Error(
+        `Unsupported decision_function_shape: ${decision_function_shape}`
+      );
     }
 
-    throw new Error(
-      `Unsupported decision_function_shape: ${decision_function_shape}`
-    );
+    return Utils.translate(resultLabel);
   }
 }

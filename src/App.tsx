@@ -21,10 +21,8 @@ import "./App.scss";
 
 import PushUpImage from "./assets/push-up.png";
 import Webcam from "react-webcam";
-import {
-  ModelFactory,
-  type GenericModel,
-} from "./classes/models/model-factory.class";
+import { ModelFactory } from "./classes/models/model-factory.class";
+import type { Classifier } from "./classes/models/model.class";
 
 const exerciseImages: Record<Exercise, string> = {
   high_plank: PushUpImage,
@@ -65,7 +63,7 @@ function CameraComponent({
   const rafIdRef = useRef<number | null>(null);
   const lastVideoTimeRef = useRef<number>(-1);
 
-  const [model, setModel] = useState<GenericModel | null>(null);
+  const [model, setModel] = useState<Classifier | null>(null);
 
   const drafter = useMemo(() => {
     return DrafterFactory.getDrafter(selectedExercise);

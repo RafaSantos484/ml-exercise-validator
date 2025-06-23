@@ -1,5 +1,5 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
-import { Model } from "./model.class";
+import { NonNeuralModel } from "./model.class";
 import Point3d from "../point3d.class";
 import Utils from "../utils.class";
 
@@ -24,7 +24,7 @@ type SvmModelData = {
   n_support: number[];
 };
 
-export class SvmModel extends Model<SvmParams, SvmModelData> {
+export class SvmModel extends NonNeuralModel<SvmParams, SvmModelData> {
   private static linearKernel(x: number[], y: number[]): number {
     return x.reduce((sum, xi, i) => sum + xi * y[i], 0);
   }

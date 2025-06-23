@@ -1,5 +1,5 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
-import { Model } from "./model.class";
+import { NonNeuralModel } from "./model.class";
 import Utils from "../utils.class";
 import Point3d from "../point3d.class";
 
@@ -19,7 +19,7 @@ type LogisticRegressionParams = {
 };
 type LogisticRegressionModelData = { coef: number[][]; intercept: number[] };
 
-export class LogisticRegressionModel extends Model<
+export class LogisticRegressionModel extends NonNeuralModel<
   LogisticRegressionParams,
   LogisticRegressionModelData
 > {

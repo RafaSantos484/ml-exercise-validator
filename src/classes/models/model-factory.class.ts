@@ -1,5 +1,5 @@
 import type { Exercise } from "../../types";
-import { NeuralNetworkModel, type Model } from "./model.class";
+import { NeuralNetworkModel, type Classifier } from "./model.class";
 import { KnnModel } from "./knn.class";
 import Utils from "../utils.class";
 import { RandomForestModel } from "./random-forest.class";
@@ -7,12 +7,10 @@ import { LogisticRegressionModel } from "./logistic-regression";
 import { loadLayersModel } from "@tensorflow/tfjs";
 import { SvmModel } from "./svm.class";
 
-export type GenericModel = Model | NeuralNetworkModel;
-
 export class ModelFactory {
   private static modelsGettersPerExercise: Record<
     Exercise,
-    Record<string, () => Promise<GenericModel>>
+    Record<string, () => Promise<Classifier>>
   > = {
     high_plank: {
       FCNN: async () =>
@@ -45,7 +43,7 @@ export class ModelFactory {
     },
   };
 
-  private static models: Record<Exercise, Record<string, GenericModel>> = {
+  private static models: Record<Exercise, Record<string, Classifier>> = {
     high_plank: {},
   };
 
@@ -56,7 +54,7 @@ export class ModelFactory {
   static async getModel(
     exercise: Exercise,
     modelName: string
-  ): Promise<GenericModel> {
+  ): Promise<Classifier> {
     if (!this.models[exercise][modelName]) {
       this.models[exercise][modelName] = await this.modelsGettersPerExercise[
         exercise

@@ -11,7 +11,11 @@ export type ModelJson<P, M> = {
   model_data: M;
 };
 
-export abstract class Model<P = any, M = any> {
+export interface Classifier {
+  predict(landmarks: Landmark[]): string;
+}
+
+export abstract class NonNeuralModel<P = any, M = any> implements Classifier {
   protected modelJson: ModelJson<P, M>;
 
   constructor(modelJson: ModelJson<P, M>) {
@@ -21,17 +25,12 @@ export abstract class Model<P = any, M = any> {
   abstract predict(landmarks: Landmark[]): string;
 }
 
-type NeuralNetworkJson = {
-  features: { angles: LandmarkKey[][] };
-  classes: string[];
-};
-export class NeuralNetworkModel {
+export class NeuralNetworkModel extends NonNeuralModel<undefined, undefined> {
   private model: LayersModel;
-  private modelJson: NeuralNetworkJson;
 
-  constructor(model: LayersModel, modelJson: NeuralNetworkJson) {
+  constructor(model: LayersModel, modelJson: ModelJson<undefined, undefined>) {
+    super(modelJson);
     this.model = model;
-    this.modelJson = modelJson;
   }
 
   predict(landmarks: Landmark[]): string {

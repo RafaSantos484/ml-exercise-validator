@@ -1,20 +1,19 @@
-import { Model } from "./model.class";
+import { NonNeuralModel } from "./model.class";
 import Utils from "../utils.class";
 import type { Landmark } from "@mediapipe/tasks-vision";
 import Point3d from "../point3d.class";
 
-type WeightStrategy = "uniform" | "distance";
 type KnnParams = {
   metric: "minkowski";
   n_neighbors: number;
   p: number;
-  weights: WeightStrategy;
+  weights: "uniform" | "distance";
   train_test_split_seed: number;
 };
 type KnnModelData = { X: number[][]; y: number[] };
 // type KnnJson = ClassifierJson<KnnParams, KnnModelData>;
 
-export class KnnModel extends Model<KnnParams, KnnModelData> {
+export class KnnModel extends NonNeuralModel<KnnParams, KnnModelData> {
   private getNeighbors(input: number[]): { label: number; distance: number }[] {
     const { X, y } = this.modelJson.model_data;
     const k = this.modelJson.params.n_neighbors;

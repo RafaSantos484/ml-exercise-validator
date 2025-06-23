@@ -11,7 +11,7 @@ export type ModelJson<P, M> = {
   model_data: M;
 };
 
-export abstract class Model<P, M> {
+export abstract class Model<P = any, M = any> {
   protected modelJson: ModelJson<P, M>;
 
   constructor(modelJson: ModelJson<P, M>) {
@@ -34,7 +34,7 @@ export class NeuralNetworkModel {
     this.modelJson = modelJson;
   }
 
-  predict(landmarks: Landmark[]): string | null {
+  predict(landmarks: Landmark[]): string {
     const x = this.modelJson.features.angles.map((triplet) =>
       Point3d.getAngleFromPointsTriplet(landmarks, triplet)
     );

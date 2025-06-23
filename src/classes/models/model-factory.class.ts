@@ -1,4 +1,3 @@
-import type { Landmark } from "@mediapipe/tasks-vision";
 import type { Exercise } from "../../types";
 import { NeuralNetworkModel, type Model } from "./model.class";
 import { KnnModel } from "./knn.class";
@@ -8,7 +7,7 @@ import { LogisticRegressionModel } from "./logistic-regression";
 import { loadLayersModel } from "@tensorflow/tfjs";
 import { SvmModel } from "./svm.class";
 
-type GenericModel = Model<any, any> | NeuralNetworkModel;
+export type GenericModel = Model | NeuralNetworkModel;
 
 export class ModelFactory {
   private static modelsGettersPerExercise: Record<
@@ -54,28 +53,15 @@ export class ModelFactory {
     return Object.keys(this.modelsGettersPerExercise[exercise]).sort();
   }
 
-  private static getModel(
+  static async getModel(
     exercise: Exercise,
     modelName: string
-  ): GenericModel | undefined {
-    return this.models[exercise][modelName];
-  }
-
-  static async loadModel(exercise: Exercise, modelName: string) {
-    const model: GenericModel | undefined = this.models[exercise][modelName];
-    if (!model) {
+  ): Promise<GenericModel> {
+    if (!this.models[exercise][modelName]) {
       this.models[exercise][modelName] = await this.modelsGettersPerExercise[
         exercise
       ][modelName]();
     }
-  }
-
-  static predict(exercise: Exercise, modelName: string, landmarks: Landmark[]) {
-    const model = this.getModel(exercise, modelName);
-    if (!model) {
-      return null;
-    } else {
-      return model.predict(landmarks);
-    }
+    return this.models[exercise][modelName];
   }
 }

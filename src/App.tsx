@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   type NormalizedLandmark,
   type PoseLandmarkerResult,
@@ -21,7 +21,10 @@ import "./App.scss";
 
 import PushUpImage from "./assets/push-up.png";
 import Webcam from "react-webcam";
-import { ModelFactory } from "./classes/models/model-factory.class";
+import {
+  ModelFactory,
+  type GenericModel,
+} from "./classes/models/model-factory.class";
 
 const exerciseImages: Record<Exercise, string> = {
   high_plank: PushUpImage,
@@ -48,7 +51,7 @@ function CameraComponent({
 }: CameraComponentProps) {
   const [screenDim, setScreenDim] = useState({ width: 0, height: 0 });
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
-  const [isLoadingModel, setIsLoadingModel] = useState(true);
+  const [isLoadingLandmarker, setIsLoadingLandmarker] = useState(true);
   const [exerciseValidation, setExerciseValidation] = useState<string | null>(
     null
   );
@@ -62,12 +65,22 @@ function CameraComponent({
   const rafIdRef = useRef<number | null>(null);
   const lastVideoTimeRef = useRef<number>(-1);
 
+  const [model, setModel] = useState<GenericModel | null>(null);
+
+  const drafter = useMemo(() => {
+    return DrafterFactory.getDrafter(selectedExercise);
+  }, [selectedExercise]);
+
+  const loadedEverything = useMemo(() => {
+    return !isLoadingVideo && !isLoadingLandmarker && model !== null;
+  }, [isLoadingVideo, isLoadingLandmarker, model]);
+
   useEffect(() => {
-    let looping = true;
+    Landmarker.load().then(() => {
+      setIsLoadingLandmarker(false);
+    });
 
     const loopFunc = function () {
-      if (!looping) return;
-
       if (webcamRef.current?.stream?.active) {
         setIsLoadingVideo(false);
       } else {
@@ -77,14 +90,16 @@ function CameraComponent({
       }
     };
     loopFunc();
-
-    return () => {
-      looping = false;
-    };
   }, []);
 
   useEffect(() => {
-    if (isLoadingVideo) return;
+    ModelFactory.getModel(selectedExercise, selectedModelName).then((model) => {
+      setModel(model);
+    });
+  }, [selectedExercise, selectedModelName]);
+
+  useEffect(() => {
+    if (!model) return;
 
     let isMounted = true;
     const rafId = rafIdRef.current;
@@ -92,12 +107,8 @@ function CameraComponent({
     const stream = webcamRef.current!.stream!;
 
     const initPoseLandmarker = async () => {
-      await Landmarker.load();
-      await ModelFactory.loadModel(selectedExercise, selectedModelName);
-
       video.onloadeddata = function () {
         video.play().then(() => {
-          setIsLoadingModel(false);
           renderLoop();
         });
       };
@@ -108,18 +119,19 @@ function CameraComponent({
     const renderLoop = () => {
       if (!isMounted) return;
 
-      if (video.readyState >= 2) {
+      if (
+        video.readyState >= 2 &&
+        video.currentTime !== lastVideoTimeRef.current
+      ) {
         const now = performance.now();
-        if (video.currentTime !== lastVideoTimeRef.current) {
-          const result = Landmarker.detect(video, now);
-          if (result) {
-            setScreenDim({
-              width: video.clientWidth,
-              height: video.clientHeight,
-            });
+        const result = Landmarker.detect(video, now);
+        if (result) {
+          setScreenDim({
+            width: video.clientWidth,
+            height: video.clientHeight,
+          });
 
-            drawResults(result);
-          }
+          drawResults(result);
           lastVideoTimeRef.current = video.currentTime;
         }
       }
@@ -135,18 +147,13 @@ function CameraComponent({
         return;
       }
 
-      const [utilLandmarks, conenctions] = DrafterFactory.getDraftInfo(
-        selectedExercise,
+      const [utilLandmarks, conenctions] = drafter.getDraftInfo(
         results.landmarks[0]
       );
       setLandmarks(utilLandmarks);
       setConnections(conenctions);
 
-      const validation = ModelFactory.predict(
-        selectedExercise,
-        selectedModelName,
-        results.worldLandmarks[0]
-      );
+      const validation = model.predict(results.worldLandmarks[0]);
       setExerciseValidation(validation);
     };
 
@@ -159,9 +166,8 @@ function CameraComponent({
       stream?.getTracks().forEach((track) => track.stop());
       // Landmarker.close();
     };
-  }, [selectedExercise, selectedModelName, isLoadingVideo]);
+  }, [model, drafter]);
 
-  const loadedEverything = !isLoadingVideo && !isLoadingModel;
   return (
     <div className="camera-container">
       <Webcam

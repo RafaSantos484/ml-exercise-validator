@@ -7,7 +7,6 @@ import {
   Button,
   CircularProgress,
   FormControl,
-  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -296,16 +295,14 @@ export default function App() {
     <div className="app-container">
       {!isCameraOpen && (
         <>
-          <IconButton
+          <a
             className="corner-icon"
-            onClick={() => {
-              window.open(
-                "https://github.com/RafaSantos484/exercise-pose-validator"
-              );
-            }}
+            href="https://github.com/RafaSantos484/ml-exercise-validator"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             <GitHub />
-          </IconButton>
+          </a>
 
           <h1>Validador de Exercícios</h1>
 

@@ -1,10 +1,8 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
 import type { LandmarkKey } from "../../types";
 import Point3d from "../point3d.class";
-import { InferenceSession, Tensor, env } from "onnxruntime-web";
+import { InferenceSession, Tensor } from "onnxruntime-web";
 import Utils from "../utils.class";
-
-env.wasm.wasmPaths = "/node_modules/onnxruntime-web/dist/";
 
 export interface Classifier {
   predict(landmarks: Landmark[]): Promise<string>;

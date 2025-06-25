@@ -1,60 +1,20 @@
 import { Model } from "./model.class";
-import Utils from "../utils.class";
-import Point3d from "../point3d.class";
 import type { Landmark } from "@mediapipe/tasks-vision";
+import { type InferenceSession } from "onnxruntime-web";
+import Utils from "../utils.class";
 
-type TreeNode = {
-  children_left: number[];
-  children_right: number[];
-  feature: number[];
-  threshold: number[];
-  value: number[][];
-};
-type Forest = TreeNode[];
+export class RandomForestModel extends Model {
+  protected modelPath = "/models/high-plank/random-forest/full_body_model.onnx";
 
-type RandomForestParams = {
-  n_estimators: number;
-  criterion: "gini" | "entropy" | "log_loss";
-  max_depth: null | number;
-  min_samples_split: number;
-  min_samples_leaf: number;
-  bootstrap: boolean;
-};
-type RandomForestModelData = Forest;
-
-export class RandomForestModel extends Model<
-  RandomForestParams,
-  RandomForestModelData
-> {
-  private static predictTree(tree: TreeNode, x: number[]): number[] {
-    let node = 0;
-    while (tree.children_left[node] !== -1) {
-      if (x[tree.feature[node]] <= tree.threshold[node]) {
-        node = tree.children_left[node];
-      } else {
-        node = tree.children_right[node];
-      }
-    }
-    return tree.value[node];
-  }
-
-  predict(landmarks: Landmark[]): string {
-    const x = this.modelJson.features.angles.map((triplet) =>
-      Point3d.getAngleFromPointsTriplet(landmarks, triplet)
-    );
-    const forest = this.modelJson.model_data;
-    const { classes } = this.modelJson;
-    const numClasses = classes.length;
-    const votes = new Array(numClasses).fill(0);
-
-    forest.forEach((tree) => {
-      const probs = RandomForestModel.predictTree(tree, x);
-      const predicted = probs.indexOf(Math.max(...probs));
-      votes[predicted]++;
-    });
-
-    const prediction = votes.indexOf(Math.max(...votes));
-    const label = classes[prediction];
+  async predict(landmarks: Landmark[]): Promise<string> {
+    const tensor = this.getTensor(landmarks);
+    const session = await this.getSession();
+    const feeds: InferenceSession.FeedsType = {
+      [session.inputNames[0]]: tensor,
+    };
+    const results = await session.run(feeds);
+    const output = results[session.outputNames[0]];
+    const label = output.data[0] as string;
     return Utils.translate(label);
   }
 }

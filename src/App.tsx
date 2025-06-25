@@ -22,7 +22,6 @@ import "./App.scss";
 import PushUpImage from "./assets/push-up.png";
 import Webcam from "react-webcam";
 import { ModelFactory } from "./classes/models/model-factory.class";
-import type { Classifier } from "./classes/models/model.class";
 
 const exerciseImages: Record<Exercise, string> = {
   high_plank: PushUpImage,
@@ -48,8 +47,11 @@ function CameraComponent({
   close,
 }: CameraComponentProps) {
   const [screenDim, setScreenDim] = useState({ width: 0, height: 0 });
+
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
   const [isLoadingLandmarker, setIsLoadingLandmarker] = useState(true);
+  const [isLoadingModel, setIsLoadingModel] = useState(true);
+
   const [exerciseValidation, setExerciseValidation] = useState<string | null>(
     null
   );
@@ -63,15 +65,21 @@ function CameraComponent({
   const rafIdRef = useRef<number | null>(null);
   const lastVideoTimeRef = useRef<number>(-1);
 
-  const [model, setModel] = useState<Classifier | null>(null);
-
+  const model = useMemo(() => {
+    setIsLoadingModel(true);
+    const model = ModelFactory.getModel(selectedExercise, selectedModelName);
+    model.load().then(() => {
+      setIsLoadingModel(false);
+    });
+    return model;
+  }, [selectedExercise, selectedModelName]);
   const drafter = useMemo(() => {
     return DrafterFactory.getDrafter(selectedExercise);
   }, [selectedExercise]);
 
   const loadedEverything = useMemo(() => {
-    return !isLoadingVideo && !isLoadingLandmarker && model !== null;
-  }, [isLoadingVideo, isLoadingLandmarker, model]);
+    return !isLoadingVideo && !isLoadingLandmarker && !isLoadingModel;
+  }, [isLoadingVideo, isLoadingLandmarker, isLoadingModel]);
 
   useEffect(() => {
     Landmarker.load().then(() => {
@@ -91,20 +99,16 @@ function CameraComponent({
   }, []);
 
   useEffect(() => {
-    ModelFactory.getModel(selectedExercise, selectedModelName).then((model) => {
-      setModel(model);
-    });
-  }, [selectedExercise, selectedModelName]);
-
-  useEffect(() => {
-    if (!model) return;
+    if (!loadedEverything) return;
 
     let isMounted = true;
     const rafId = rafIdRef.current;
     const video = webcamRef.current!.video!;
     const stream = webcamRef.current!.stream!;
 
-    const initPoseLandmarker = async () => {
+    const initPoseLandmarker = async function () {
+      await model.load();
+
       video.onloadeddata = function () {
         video.play().then(() => {
           renderLoop();
@@ -129,16 +133,31 @@ function CameraComponent({
             height: video.clientHeight,
           });
 
-          drawResults(result);
-          lastVideoTimeRef.current = video.currentTime;
+          drawResults(result)
+            .then(() => {
+              if (isMounted) {
+                lastVideoTimeRef.current = video.currentTime;
+              }
+            })
+            .finally(() => {
+              if (isMounted) {
+                rafIdRef.current = requestAnimationFrame(renderLoop);
+              }
+            });
+
+          return;
         }
       }
 
       rafIdRef.current = requestAnimationFrame(renderLoop);
     };
 
-    const drawResults = (results: PoseLandmarkerResult) => {
-      if (!results.landmarks.length || !results.worldLandmarks.length) {
+    async function drawResults(results: PoseLandmarkerResult) {
+      if (
+        !results.landmarks.length ||
+        !results.worldLandmarks.length ||
+        !model
+      ) {
         setLandmarks([]);
         setConnections([]);
         setExerciseValidation(null);
@@ -151,9 +170,9 @@ function CameraComponent({
       setLandmarks(utilLandmarks);
       setConnections(conenctions);
 
-      const validation = model.predict(results.worldLandmarks[0]);
+      const validation = await model.predict(results.worldLandmarks[0]);
       setExerciseValidation(validation);
-    };
+    }
 
     initPoseLandmarker();
 
@@ -164,7 +183,7 @@ function CameraComponent({
       stream?.getTracks().forEach((track) => track.stop());
       // Landmarker.close();
     };
-  }, [model, drafter]);
+  }, [model, drafter, loadedEverything]);
 
   return (
     <div className="camera-container">

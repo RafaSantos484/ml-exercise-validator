@@ -1,4 +1,4 @@
-import { NonNeuralModel } from "./model.class";
+import { Model } from "./model.class";
 import Utils from "../utils.class";
 import Point3d from "../point3d.class";
 import type { Landmark } from "@mediapipe/tasks-vision";
@@ -22,7 +22,7 @@ type RandomForestParams = {
 };
 type RandomForestModelData = Forest;
 
-export class RandomForestModel extends NonNeuralModel<
+export class RandomForestModel extends Model<
   RandomForestParams,
   RandomForestModelData
 > {

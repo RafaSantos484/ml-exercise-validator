@@ -4,26 +4,16 @@ import { KnnModel } from "./knn.class";
 import Utils from "../utils.class";
 import { RandomForestModel } from "./random-forest.class";
 import { LogisticRegressionModel } from "./logistic-regression";
-import { loadLayersModel } from "@tensorflow/tfjs";
 import { SvmModel } from "./svm.class";
 
 export class ModelFactory {
   private static modelsGettersPerExercise: Record<
     Exercise,
-    Record<string, () => Promise<Classifier>>
+    Record<string, () => Classifier>
   > = {
     high_plank: {
-      FCNN: async () =>
-        new NeuralNetworkModel(
-          await loadLayersModel("models/high-plank/fcnn/model.json"),
-          await Utils.readJson(
-            "models/high-plank/fcnn/full_body_model_info.json"
-          )
-        ),
-      KNN: async () =>
-        new KnnModel(
-          await Utils.readJson("models/high-plank/knn/full_body_model.json")
-        ),
+      FCNN: NeuralNetworkModel,
+      KNN: () => new KnnModel(),
       "Random Forest": async () =>
         new RandomForestModel(
           await Utils.readJson(
@@ -51,14 +41,10 @@ export class ModelFactory {
     return Object.keys(this.modelsGettersPerExercise[exercise]).sort();
   }
 
-  static async getModel(
-    exercise: Exercise,
-    modelName: string
-  ): Promise<Classifier> {
+  static getModel(exercise: Exercise, modelName: string): Classifier {
     if (!this.models[exercise][modelName]) {
-      this.models[exercise][modelName] = await this.modelsGettersPerExercise[
-        exercise
-      ][modelName]();
+      this.models[exercise][modelName] =
+        this.modelsGettersPerExercise[exercise][modelName]();
     }
     return this.models[exercise][modelName];
   }

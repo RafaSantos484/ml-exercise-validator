@@ -1,17 +1,21 @@
 import type { Exercise } from "../../types";
-import { type Classifier } from "./model.class";
-import { KnnModel } from "./knn.class";
-import { RandomForestModel } from "./random-forest.class";
-import { SvmModel } from "./svm.class";
-import { LogisticRegressionModel } from "./logistic-regression";
+import { KerasModel, SklearnModel, type Classifier } from "./model.class";
 
 export class ModelFactory {
   private static models: Record<Exercise, Record<string, Classifier>> = {
     high_plank: {
-      KNN: new KnnModel(),
-      "Random Forest": new RandomForestModel(),
-      "Regressão Logística": new LogisticRegressionModel(),
-      SVM: new SvmModel(),
+      FCNN: new KerasModel("/models/high-plank/fcnn/full_body_model.onnx", [
+        "correct",
+        "incorrect",
+      ]),
+      KNN: new SklearnModel("/models/high-plank/knn/full_body_model.onnx"),
+      "Random Forest": new SklearnModel(
+        "/models/high-plank/random-forest/full_body_model.onnx"
+      ),
+      "Regressão Logística": new SklearnModel(
+        "/models/high-plank/logistic-regression/full_body_model.onnx"
+      ),
+      SVM: new SklearnModel("/models/high-plank/svm/full_body_model.onnx"),
     },
   };
 

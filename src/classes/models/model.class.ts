@@ -1,28 +1,23 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
 import type { LandmarkKey } from "../../types";
-import { tensor2d, type LayersModel } from "@tensorflow/tfjs";
 import Point3d from "../point3d.class";
-import Utils from "../utils.class";
 import { InferenceSession, Tensor, env } from "onnxruntime-web";
+import Utils from "../utils.class";
 
 env.wasm.wasmPaths = "/node_modules/onnxruntime-web/dist/";
-
-export type ModelJson<P, M> = {
-  params: P;
-  features: { angles: LandmarkKey[][] };
-  classes: string[];
-  model_data: M;
-};
 
 export interface Classifier {
   predict(landmarks: Landmark[]): Promise<string>;
   load(): Promise<void>;
 }
 
-export abstract class Model implements Classifier {
-  // protected modelJson: ModelJson<P, M>;
-  protected abstract modelPath: string;
+export class SklearnModel implements Classifier {
+  protected modelPath: string;
   private session: InferenceSession | undefined;
+
+  constructor(modelPath: string) {
+    this.modelPath = modelPath;
+  }
 
   async load(): Promise<void> {
     if (!this.session) {
@@ -63,28 +58,37 @@ export abstract class Model implements Classifier {
     return tensor;
   }
 
-  abstract predict(landmarks: Landmark[]): Promise<string>;
+  async predict(landmarks: Landmark[]): Promise<string> {
+    const tensor = this.getTensor(landmarks);
+    const session = await this.getSession();
+    const feeds: InferenceSession.FeedsType = {
+      [session.inputNames[0]]: tensor,
+    };
+    const results = await session.run(feeds);
+    const output = results[session.outputNames[0]];
+    const label = output.data[0] as string;
+    return Utils.translate(label);
+  }
 }
 
-export class NeuralNetworkModel extends Model<undefined, undefined> {
-  private model: LayersModel;
+export class KerasModel extends SklearnModel {
+  protected classes: string[];
 
-  constructor(model: LayersModel, modelJson: ModelJson<undefined, undefined>) {
-    super(modelJson);
-    this.model = model;
+  constructor(modelPath: string, classes: string[]) {
+    super(modelPath);
+    this.classes = classes;
   }
 
   async predict(landmarks: Landmark[]): Promise<string> {
-    const x = this.modelJson.features.angles.map((triplet) =>
-      Point3d.getAngleFromPointsTriplet(landmarks, triplet)
-    );
-    const inputTensor = tensor2d([x]);
-    const outputTensor = this.model.predict(inputTensor) as Tensor;
-    const predictionArray = outputTensor.dataSync();
-    const maxProb = Math.max(...predictionArray);
-    const predictedIndex = predictionArray.indexOf(maxProb);
-    const predictedClass = this.modelJson.classes[predictedIndex];
-    const translatedClass = Utils.translate(predictedClass);
-    return `${translatedClass}(${maxProb.toFixed(2)})`;
+    const tensor = this.getTensor(landmarks);
+    const session = await this.getSession();
+    const feeds: InferenceSession.FeedsType = {
+      [session.inputNames[0]]: tensor,
+    };
+    const results = await session.run(feeds);
+    const probs = results[session.outputNames[0]].data as Float32Array;
+    const maxIdx = probs.indexOf(Math.max(...probs));
+    const label = this.classes[maxIdx];
+    return Utils.translate(label);
   }
 }

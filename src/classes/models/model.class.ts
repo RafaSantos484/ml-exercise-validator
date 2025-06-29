@@ -4,8 +4,12 @@ import Point3d from "../point3d.class";
 import { InferenceSession, Tensor } from "onnxruntime-web";
 import Utils from "../utils.class";
 
+export type ValidationResult = {
+  text: string;
+  color: string;
+};
 export interface Classifier {
-  predict(landmarks: Landmark[]): Promise<string>;
+  predict(landmarks: Landmark[]): Promise<ValidationResult>;
   load(): Promise<void>;
 }
 
@@ -56,7 +60,7 @@ export class SklearnModel implements Classifier {
     return tensor;
   }
 
-  async predict(landmarks: Landmark[]): Promise<string> {
+  async predict(landmarks: Landmark[]): Promise<ValidationResult> {
     const tensor = this.getTensor(landmarks);
     const session = await this.getSession();
     const feeds: InferenceSession.FeedsType = {
@@ -77,7 +81,7 @@ export class KerasModel extends SklearnModel {
     this.classes = classes;
   }
 
-  async predict(landmarks: Landmark[]): Promise<string> {
+  async predict(landmarks: Landmark[]): Promise<ValidationResult> {
     const tensor = this.getTensor(landmarks);
     const session = await this.getSession();
     const feeds: InferenceSession.FeedsType = {

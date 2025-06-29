@@ -1,3 +1,5 @@
+import type { ValidationResult } from "./models/model.class";
+
 export default class Utils {
   static async sleep(ms: number) {
     await new Promise((resolve) => {
@@ -8,12 +10,12 @@ export default class Utils {
   }
 
   static translate(str: string) {
-    const translationTable: Record<string, string> = {
-      incorrect: "incorreto",
-      correct: "correto",
+    const translationTable: Record<string, ValidationResult> = {
+      incorrect: { text: "incorreto", color: "red" },
+      correct: { text: "correto", color: "green" },
     };
 
-    return translationTable[str] ?? str;
+    return translationTable[str] ?? { text: str, color: "yellow" };
   }
 
   static getMeanAndStdDev(arr: number[]) {

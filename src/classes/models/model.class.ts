@@ -10,7 +10,7 @@ export interface Classifier {
 }
 
 export class SklearnModel implements Classifier {
-  protected modelPath: string;
+  private modelPath: string;
   private session: InferenceSession | undefined;
 
   constructor(modelPath: string) {
@@ -28,7 +28,7 @@ export class SklearnModel implements Classifier {
     return this.session as InferenceSession;
   }
 
-  getTensor(landmarks: Landmark[]) {
+  protected getTensor(landmarks: Landmark[]) {
     const triplets: LandmarkKey[][] = [
       ["LEFT_WRIST", "LEFT_ELBOW", "LEFT_SHOULDER"],
       ["RIGHT_WRIST", "RIGHT_ELBOW", "RIGHT_SHOULDER"],
@@ -70,7 +70,7 @@ export class SklearnModel implements Classifier {
 }
 
 export class KerasModel extends SklearnModel {
-  protected classes: string[];
+  private classes: string[];
 
   constructor(modelPath: string, classes: string[]) {
     super(modelPath);

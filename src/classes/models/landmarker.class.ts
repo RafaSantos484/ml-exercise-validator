@@ -11,6 +11,7 @@ export class Landmarker {
       this.poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: {
           modelAssetPath: "models/landmarker/pose_landmarker_full.task",
+          // modelAssetPath: "models/landmarker/pose_landmarker_lite.task",
         },
         runningMode: "VIDEO",
         numPoses: 1,

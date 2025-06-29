@@ -21,6 +21,7 @@ import "./App.scss";
 import PushUpImage from "./assets/push-up.png";
 import Webcam from "react-webcam";
 import { ModelFactory } from "./classes/models/model-factory.class";
+import Utils from "./classes/utils.class";
 
 const exerciseImages: Record<Exercise, string> = {
   high_plank: PushUpImage,
@@ -60,9 +61,20 @@ function CameraComponent({
   >([]);
 
   const webcamRef = useRef<Webcam>(null);
-
   const rafIdRef = useRef<number | null>(null);
   const lastVideoTimeRef = useRef<number>(-1);
+
+  const [fps, setFps] = useState<number | null>(null);
+  const prevFpsTimestampRef = useRef<number | null>(null);
+  const [avgDetectionTime, setAvgDetectionTime] = useState<number | null>(null);
+  const [avgPredictionTime, setAvgPredictionTime] = useState<number | null>(
+    null
+  );
+
+  const times = useRef<Record<string, number[]>>({
+    detection: [],
+    prediction: [],
+  });
 
   const model = useMemo(() => {
     setIsLoadingModel(true);
@@ -125,8 +137,22 @@ function CameraComponent({
         video.currentTime !== lastVideoTimeRef.current
       ) {
         const now = performance.now();
+        if (prevFpsTimestampRef.current !== null) {
+          const elapsed = now - prevFpsTimestampRef.current;
+          setFps(Math.round(1000 / elapsed));
+        }
+        prevFpsTimestampRef.current = now;
+
+        const detectionStart = performance.now();
         const result = Landmarker.detect(video, now);
-        if (result) {
+        const detectionEnd = performance.now();
+        setAvgDetectionTime(detectionEnd - detectionStart);
+        times.current.detection.push(detectionEnd - detectionStart);
+        if (times.current.detection.length > 100) {
+          times.current.detection.shift();
+        }
+
+        if (result && result.landmarks.length && result.worldLandmarks.length) {
           setScreenDim({
             width: video.clientWidth,
             height: video.clientHeight,
@@ -145,6 +171,14 @@ function CameraComponent({
             });
 
           return;
+        } else {
+          setLandmarks([]);
+          setConnections([]);
+          setExerciseValidation(null);
+          setFps(null);
+          prevFpsTimestampRef.current = null;
+          setAvgDetectionTime(null);
+          setAvgPredictionTime(null);
         }
       }
 
@@ -152,35 +186,38 @@ function CameraComponent({
     };
 
     async function drawResults(results: PoseLandmarkerResult) {
-      if (
-        !results.landmarks.length ||
-        !results.worldLandmarks.length ||
-        !model
-      ) {
-        setLandmarks([]);
-        setConnections([]);
-        setExerciseValidation(null);
-        return;
-      }
-
       const [utilLandmarks, conenctions] = drafter.getDraftInfo(
         results.landmarks[0]
       );
       setLandmarks(utilLandmarks);
       setConnections(conenctions);
 
+      const predictionStart = performance.now();
       const validation = await model.predict(results.worldLandmarks[0]);
+      const predictionEnd = performance.now();
+      setAvgPredictionTime(predictionEnd - predictionStart);
+      times.current.prediction.push(predictionEnd - predictionStart);
+      if (times.current.prediction.length > 100) {
+        times.current.prediction.shift();
+      }
+
       setExerciseValidation(validation);
     }
 
     initPoseLandmarker();
 
+    const { prediction, detection } = times.current;
     return () => {
       isMounted = false;
       cancelAnimationFrame(rafId ?? 0);
       const stream = video.srcObject as MediaStream;
       stream?.getTracks().forEach((track) => track.stop());
       // Landmarker.close();
+
+      console.log("Landmarking time:");
+      console.log(Utils.getMeanAndStdDev(detection));
+      console.log("Prediction time:");
+      console.log(Utils.getMeanAndStdDev(prediction));
     };
   }, [model, drafter, loadedEverything]);
 
@@ -246,7 +283,20 @@ function CameraComponent({
                 color = "red";
                 message = exerciseValidation;
               }
-              return <p style={{ color }}>{message}</p>;
+
+              return (
+                <div className="text-container">
+                  <span style={{ position: "absolute", top: 0, left: "1rem" }}>
+                    FPS: {fps}
+                    <br />
+                    Landmarking: {avgDetectionTime?.toFixed(2)}ms
+                    <br />
+                    Predição: {avgPredictionTime?.toFixed(2)}ms
+                  </span>
+
+                  <p style={{ color, margin: "auto" }}>{message}</p>
+                </div>
+              );
             })()}
 
             <Button

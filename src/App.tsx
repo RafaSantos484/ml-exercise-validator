@@ -145,7 +145,7 @@ function CameraComponent({
           const _fps = 1000 / elapsed;
           // setFps(Math.round(_fps));
           times.current.fps.push(_fps);
-          if (times.current.fps.length > 100) {
+          if (times.current.fps.length > 10) {
             times.current.fps.shift();
           }
         }
@@ -156,7 +156,7 @@ function CameraComponent({
         const detectionEnd = performance.now();
         // setAvgDetectionTime(detectionEnd - detectionStart);
         times.current.detection.push(detectionEnd - detectionStart);
-        if (times.current.detection.length > 100) {
+        if (times.current.detection.length > 10) {
           times.current.detection.shift();
         }
 
@@ -210,7 +210,7 @@ function CameraComponent({
       const predictionEnd = performance.now();
       // setAvgPredictionTime(predictionEnd - predictionStart);
       times.current.prediction.push(predictionEnd - predictionStart);
-      if (times.current.prediction.length > 100) {
+      if (times.current.prediction.length > 10) {
         times.current.prediction.shift();
       }
 

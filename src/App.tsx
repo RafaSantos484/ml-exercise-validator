@@ -227,18 +227,19 @@ function CameraComponent({
       stream?.getTracks().forEach((track) => track.stop());
       // Landmarker.close();
 
+      const fractionDigits = 4;
       const fpsMeanStdDev = Utils.getMeanAndStdDev(fps);
       const fpsStr = `FPS: ${fpsMeanStdDev.mean.toFixed(
-        2
-      )} ± ${fpsMeanStdDev.stdDev.toFixed(2)}`;
+        fractionDigits
+      )} ± ${fpsMeanStdDev.stdDev.toFixed(fractionDigits)}`;
       const detectionMeanStdDev = Utils.getMeanAndStdDev(detection);
       const detectionStr = `Detecção: ${detectionMeanStdDev.mean.toFixed(
-        2
-      )}ms ± ${detectionMeanStdDev.stdDev.toFixed(2)}ms`;
+        fractionDigits
+      )}ms ± ${detectionMeanStdDev.stdDev.toFixed(fractionDigits)}ms`;
       const predictionMeanStdDev = Utils.getMeanAndStdDev(prediction);
       const predictionStr = `Predição: ${predictionMeanStdDev.mean.toFixed(
-        2
-      )}ms ± ${predictionMeanStdDev.stdDev.toFixed(2)}ms`;
+        fractionDigits
+      )}ms ± ${predictionMeanStdDev.stdDev.toFixed(fractionDigits)}ms`;
       alert(fpsStr + "\n" + detectionStr + "\n" + predictionStr);
     };
   }, [model, drafter, loadedEverything]);

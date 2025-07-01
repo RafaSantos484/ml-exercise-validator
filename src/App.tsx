@@ -45,6 +45,7 @@ const defaultValidationResult = {
   text: "Aguardando posição",
   color: "yellow",
 };
+const MAX_METRICS_ARR_SIZE = 20;
 function CameraComponent({
   selectedExercise,
   selectedModelName,
@@ -145,7 +146,7 @@ function CameraComponent({
           const _fps = 1000 / elapsed;
           // setFps(Math.round(_fps));
           times.current.fps.push(_fps);
-          if (times.current.fps.length > 10) {
+          if (times.current.fps.length > MAX_METRICS_ARR_SIZE) {
             times.current.fps.shift();
           }
         }
@@ -156,7 +157,7 @@ function CameraComponent({
         const detectionEnd = performance.now();
         // setAvgDetectionTime(detectionEnd - detectionStart);
         times.current.detection.push(detectionEnd - detectionStart);
-        if (times.current.detection.length > 10) {
+        if (times.current.detection.length > MAX_METRICS_ARR_SIZE) {
           times.current.detection.shift();
         }
 
@@ -209,7 +210,7 @@ function CameraComponent({
       const predictionEnd = performance.now();
       // setAvgPredictionTime(predictionEnd - predictionStart);
       times.current.prediction.push(predictionEnd - predictionStart);
-      if (times.current.prediction.length > 10) {
+      if (times.current.prediction.length > MAX_METRICS_ARR_SIZE) {
         times.current.prediction.shift();
       }
 

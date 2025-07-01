@@ -183,15 +183,14 @@ function CameraComponent({
           setLandmarks([]);
           setConnections([]);
           setExerciseValidation(defaultValidationResult);
-          // setFps(null);
           prevFpsTimestampRef.current = null;
-          // setAvgDetectionTime(null);
-          // setAvgPredictionTime(null);
+          /*
           times.current = {
             fps: [],
             detection: [],
             prediction: [],
           };
+          */
         }
       }
 

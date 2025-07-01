@@ -81,7 +81,7 @@ export default class Point3d {
     props: { degrees?: boolean; normalize?: boolean } = {}
   ): number {
     const degrees = props.degrees ?? false;
-    const normalize = props.normalize ?? false;
+    const normalize = props.normalize ?? true;
 
     const a = new Point3d(landmarks[landmarksDict[triplet[0]]]);
     const b = new Point3d(landmarks[landmarksDict[triplet[1]]]);

@@ -1,9 +1,11 @@
-import type { Exercise } from "../../types";
-import { KerasModel, SklearnModel, type Classifier } from "./model.class";
+import type { Classifier, Exercise } from "../../types";
+import { EmpiricalModel } from "./empirical-model.class";
+import { KerasModel, SklearnModel } from "./model.class";
 
 export class ModelFactory {
   private static models: Record<Exercise, Record<string, Classifier>> = {
     high_plank: {
+      Empírico: new EmpiricalModel(),
       FCNN: new KerasModel("/models/high-plank/fcnn/full_body_model.onnx", [
         "correct",
         "incorrect",

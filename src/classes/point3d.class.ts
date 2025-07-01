@@ -78,9 +78,11 @@ export default class Point3d {
   public static getAngleFromPointsTriplet(
     landmarks: Landmark[],
     triplet: LandmarkKey[],
-    degrees: boolean = false,
-    normalize: boolean = true
+    props: { degrees?: boolean; normalize?: boolean } = {}
   ): number {
+    const degrees = props.degrees ?? false;
+    const normalize = props.normalize ?? false;
+
     const a = new Point3d(landmarks[landmarksDict[triplet[0]]]);
     const b = new Point3d(landmarks[landmarksDict[triplet[1]]]);
     const c = new Point3d(landmarks[landmarksDict[triplet[2]]]);

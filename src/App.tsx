@@ -22,7 +22,6 @@ import PushUpImage from "./assets/push-up.png";
 import Webcam from "react-webcam";
 import { ModelFactory } from "./classes/models/model-factory.class";
 import Utils from "./classes/utils.class";
-import type { ValidationResult } from "./classes/models/model.class";
 
 const exerciseImages: Record<Exercise, string> = {
   high_plank: PushUpImage,
@@ -42,7 +41,7 @@ type CameraComponentProps = {
   close: () => void;
 };
 
-const defaultValidationResult: ValidationResult = {
+const defaultValidationResult = {
   text: "Aguardando posição",
   color: "yellow",
 };

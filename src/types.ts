@@ -1,3 +1,5 @@
+import type { Landmark } from "@mediapipe/tasks-vision";
+
 export type Exercise = "high_plank";
 export const exercisesTranslator: Record<Exercise, string> = {
   high_plank: "Prancha Alta",
@@ -40,3 +42,12 @@ export const landmarksDict = {
   RIGHT_FOOT_INDEX: 32,
 };
 export type LandmarkKey = keyof typeof landmarksDict;
+
+export type ValidationResult = {
+  text: string;
+  color: string;
+};
+export interface Classifier {
+  predict(landmarks: Landmark[]): Promise<ValidationResult>;
+  load(): Promise<void>;
+}

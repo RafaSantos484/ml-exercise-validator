@@ -1,4 +1,4 @@
-import type { ValidationResult } from "./models/model.class";
+import type { ValidationResult } from "../types";
 
 export default class Utils {
   static async sleep(ms: number) {
@@ -7,6 +7,10 @@ export default class Utils {
         resolve(null);
       }, ms);
     });
+  }
+
+  static isBetween(value: number, min: number, max: number) {
+    return value >= min && value <= max;
   }
 
   static translate(str: string) {

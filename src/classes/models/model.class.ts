@@ -1,17 +1,8 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
-import type { LandmarkKey } from "../../types";
+import type { Classifier, LandmarkKey, ValidationResult } from "../../types";
 import Point3d from "../point3d.class";
 import { InferenceSession, Tensor } from "onnxruntime-web";
 import Utils from "../utils.class";
-
-export type ValidationResult = {
-  text: string;
-  color: string;
-};
-export interface Classifier {
-  predict(landmarks: Landmark[]): Promise<ValidationResult>;
-  load(): Promise<void>;
-}
 
 export class SklearnModel implements Classifier {
   private modelPath: string;

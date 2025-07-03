@@ -26,6 +26,6 @@ export class HybridModel extends SklearnModel {
     }
 
     const empiricalResult = await this.empiricalModel.predict(landmarks);
-    return empiricalResult.isCorrect ? empiricalResult : sklearnResult;
+    return empiricalResult.isCorrect ? sklearnResult : empiricalResult;
   }
 }

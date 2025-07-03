@@ -3,24 +3,24 @@ import { EmpiricalModel } from "./empirical-model.class";
 import { HybridModel } from "./hybrid-model.class";
 import { KerasModel, SklearnModel } from "./sklearn-model.class";
 
-const randomForestModel = new SklearnModel(
-  "/models/high-plank/random-forest/full_body_model.onnx"
-);
+const empiricalModel = new EmpiricalModel();
 
 export class ModelFactory {
   private static models: Record<Exercise, Record<string, Classifier>> = {
     high_plank: {
-      Empírico: new EmpiricalModel(),
+      Empírico: empiricalModel,
       FCNN: new KerasModel("/models/high-plank/fcnn/full_body_model.onnx", [
         "correct",
         "incorrect",
       ]),
       Híbrido: new HybridModel(
         "/models/high-plank/random-forest/full_body_model.onnx",
-        randomForestModel
+        empiricalModel
       ),
       KNN: new SklearnModel("/models/high-plank/knn/full_body_model.onnx"),
-      "Random Forest": randomForestModel,
+      "Random Forest": new SklearnModel(
+        "/models/high-plank/random-forest/full_body_model.onnx"
+      ),
       "Regressão Logística": new SklearnModel(
         "/models/high-plank/logistic-regression/full_body_model.onnx"
       ),

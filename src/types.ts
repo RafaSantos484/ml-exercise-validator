@@ -46,6 +46,7 @@ export type LandmarkKey = keyof typeof landmarksDict;
 export type ValidationResult = {
   text: string;
   color: string;
+  isCorrect: boolean;
 };
 export interface Classifier {
   predict(landmarks: Landmark[]): Promise<ValidationResult>;

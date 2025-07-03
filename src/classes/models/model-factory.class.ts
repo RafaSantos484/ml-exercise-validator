@@ -1,6 +1,11 @@
 import type { Classifier, Exercise } from "../../types";
 import { EmpiricalModel } from "./empirical-model.class";
-import { KerasModel, SklearnModel } from "./model.class";
+import { HybridModel } from "./hybrid-model.class";
+import { KerasModel, SklearnModel } from "./sklearn-model.class";
+
+const randomForestModel = new SklearnModel(
+  "/models/high-plank/random-forest/full_body_model.onnx"
+);
 
 export class ModelFactory {
   private static models: Record<Exercise, Record<string, Classifier>> = {
@@ -10,10 +15,12 @@ export class ModelFactory {
         "correct",
         "incorrect",
       ]),
-      KNN: new SklearnModel("/models/high-plank/knn/full_body_model.onnx"),
-      "Random Forest": new SklearnModel(
-        "/models/high-plank/random-forest/full_body_model.onnx"
+      Híbrido: new HybridModel(
+        "/models/high-plank/random-forest/full_body_model.onnx",
+        randomForestModel
       ),
+      KNN: new SklearnModel("/models/high-plank/knn/full_body_model.onnx"),
+      "Random Forest": randomForestModel,
       "Regressão Logística": new SklearnModel(
         "/models/high-plank/logistic-regression/full_body_model.onnx"
       ),

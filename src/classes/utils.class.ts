@@ -15,8 +15,8 @@ export default class Utils {
 
   static translate(str: string) {
     const translationTable: Record<string, ValidationResult> = {
-      incorrect: { text: "incorreto", color: "red" },
-      correct: { text: "correto", color: "green" },
+      incorrect: { text: "incorreto", color: "red", isCorrect: false },
+      correct: { text: "correto", color: "green", isCorrect: true },
     };
 
     return translationTable[str] ?? { text: str, color: "yellow" };

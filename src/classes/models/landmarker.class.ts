@@ -1,7 +1,7 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 
 export class Landmarker {
-  private static poseLandmarker: PoseLandmarker | null = null;
+  private static poseLandmarker: PoseLandmarker | undefined;
 
   public static async load() {
     if (!this.poseLandmarker) {
@@ -22,7 +22,7 @@ export class Landmarker {
   public static detect(videoEl: HTMLVideoElement, timestamp: number) {
     const landmarker = this.poseLandmarker;
     if (!landmarker) {
-      this.load();
+      // this.load();
       return null;
     }
 

@@ -35,6 +35,7 @@ export class EmpiricalModel implements Classifier {
       return {
         text: "Alinhe os cotovelos com os punhos e ombros",
         color: "red",
+        isCorrect: false,
       };
     }
 
@@ -56,6 +57,7 @@ export class EmpiricalModel implements Classifier {
       return {
         text: "Os braços estão muito abertos ou fechados",
         color: "red",
+        isCorrect: false,
       };
     }
 
@@ -77,6 +79,7 @@ export class EmpiricalModel implements Classifier {
       return {
         text: "Mantenha os punhos alinhados com os ombros e quadris",
         color: "red",
+        isCorrect: false,
       };
     }
 
@@ -98,6 +101,7 @@ export class EmpiricalModel implements Classifier {
       return {
         text: "Mantenha os joelhos alinhados com os quadris e ombros",
         color: "red",
+        isCorrect: false,
       };
     }
 
@@ -119,12 +123,14 @@ export class EmpiricalModel implements Classifier {
       return {
         text: "Mantenha os tornozelos alinhados com os quadris e joelhos",
         color: "red",
+        isCorrect: false,
       };
     }
 
     const result: ValidationResult = {
       text: "Correto! Continue assim!",
       color: "green",
+      isCorrect: true,
     };
     return result;
   }

@@ -1,26 +1,27 @@
 import type { Landmark } from "@mediapipe/tasks-vision";
 import { EmpiricalModel } from "./empirical-model.class";
 import { SklearnModel } from "./sklearn-model.class";
-import type { ValidationResult } from "../../types";
+import type { Classifier, ValidationResult } from "../../types";
 
-export class HybridModel extends SklearnModel {
+export class HybridModel implements Classifier {
+  private sklearnModel: SklearnModel;
   private empiricalModel: EmpiricalModel;
 
   constructor(
-    modelPath: string,
+    sklearnModel: SklearnModel,
     empiricalModel: EmpiricalModel = new EmpiricalModel()
   ) {
-    super(modelPath);
+    this.sklearnModel = sklearnModel;
     this.empiricalModel = empiricalModel;
   }
 
   async load() {
-    await super.load();
+    await this.sklearnModel.load();
     // await this.empiricalModel.load();
   }
 
   async predict(landmarks: Landmark[]): Promise<ValidationResult> {
-    const sklearnResult = await super.predict(landmarks);
+    const sklearnResult = await this.sklearnModel.predict(landmarks);
     if (sklearnResult.isCorrect) {
       return sklearnResult;
     }

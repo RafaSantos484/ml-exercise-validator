@@ -26,16 +26,18 @@ export class EnsembleModel implements Classifier {
       const result = await model.predict(landmarks);
       results.push(result);
     }
-    let isCorrectSum = 0;
-    let isIncorrectSum = 0;
-    results.forEach((result) => {
-      if (result.isCorrect) {
-        isCorrectSum++;
-      } else {
-        isIncorrectSum++;
-      }
-    });
-    const isCorrect = isCorrectSum > isIncorrectSum;
+    const [isCorrectCount, isIncorrectCount] = results.reduce(
+      (prevValue, currentValue) => {
+        if (currentValue.isCorrect) {
+          prevValue[0]++;
+        } else {
+          prevValue[1]++;
+        }
+        return prevValue;
+      },
+      [0, 0]
+    );
+    const isCorrect = isCorrectCount > isIncorrectCount;
     return Utils.translate(isCorrect ? "correct" : "incorrect");
   }
 }

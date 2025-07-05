@@ -4,7 +4,7 @@ import { EnsembleModel } from "./ensemble-model.class";
 import { HybridModel } from "./hybrid-model.class";
 import { KerasModel, SklearnModel } from "./sklearn-model.class";
 
-const empiricalModel = new EmpiricalModel();
+const empirical = new EmpiricalModel();
 const FCNN = new KerasModel("/models/high-plank/fcnn/full_body_model.onnx", [
   "correct",
   "incorrect",
@@ -21,8 +21,9 @@ const SVM = new SklearnModel("/models/high-plank/svm/full_body_model.onnx");
 export class ModelFactory {
   private static models: Record<Exercise, Record<string, Classifier>> = {
     high_plank: {
-      Empírico: empiricalModel,
+      Empírico: empirical,
       Ensenble: new EnsembleModel(
+        empirical,
         FCNN,
         KNN,
         randomForest,
@@ -30,7 +31,7 @@ export class ModelFactory {
         SVM
       ),
       FCNN,
-      Híbrido: new HybridModel(randomForest, empiricalModel),
+      Híbrido: new HybridModel(randomForest, empirical),
       KNN,
       "Random Forest": randomForest,
       "Regressão Logística": logisticRegression,

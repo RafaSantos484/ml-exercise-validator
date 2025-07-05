@@ -21,23 +21,15 @@ export class EnsembleModel implements Classifier {
       this.models.map((model) => model.predict(landmarks))
     );
     */
-    const results: ValidationResult[] = [];
+    let isCorrectBalance = 0;
     for (const model of this.models) {
       const result = await model.predict(landmarks);
-      results.push(result);
+      if (result.isCorrect) {
+        isCorrectBalance++;
+      } else {
+        isCorrectBalance--;
+      }
     }
-    const [isCorrectCount, isIncorrectCount] = results.reduce(
-      (prevValue, currentValue) => {
-        if (currentValue.isCorrect) {
-          prevValue[0]++;
-        } else {
-          prevValue[1]++;
-        }
-        return prevValue;
-      },
-      [0, 0]
-    );
-    const isCorrect = isCorrectCount > isIncorrectCount;
-    return Utils.translate(isCorrect ? "correct" : "incorrect");
+    return Utils.translate(isCorrectBalance > 0 ? "correct" : "incorrect");
   }
 }

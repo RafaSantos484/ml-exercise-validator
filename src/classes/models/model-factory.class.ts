@@ -1,7 +1,6 @@
 import type { Classifier, Exercise } from "../../types";
 import { EmpiricalModel } from "./empirical-model.class";
 import { EnsembleModel } from "./ensemble-model.class";
-import { HybridModel } from "./hybrid-model.class";
 import { KerasModel, SklearnModel } from "./sklearn-model.class";
 
 const empirical = new EmpiricalModel();
@@ -31,7 +30,6 @@ export class ModelFactory {
         SVM
       ),
       FCNN,
-      Híbrido: new HybridModel(randomForest, empirical),
       KNN,
       "Random Forest": randomForest,
       "Regressão Logística": logisticRegression,

@@ -1,54 +1,26 @@
-# React + TypeScript + Vite
+# 🏋️ ML Exercise Validator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Solução web que utiliza visão computacional e aprendizado de máquina para validar automaticamente a execução de exercícios físicos, fornecendo feedback em tempo real diretamente no navegador do usuário.
 
-Currently, two official plugins are available:
+## 📸 Visão Geral
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Este projeto permite que usuários realizem exercícios físicos, como a prancha alta, enquanto recebem validações automáticas sobre a correção da postura. A validação é feita com base na detecção de pontos do corpo utilizando o BlazePose (MediaPipe) e modelos de inferência treinados previamente, como KNN, SVM, Random Forest, regressão logística, além de um modelo empírico baseado em regras como intervalos em que os ângulos se encontram. Os modelos de ML treinados em Python podem ser carregados no ambiente JavaScript dos navegadores utilizando o formato [ONNX](https://onnx.ai/).
 
-## Expanding the ESLint configuration
+## 🚀 Tecnologias Utilizadas
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React
+- TypeScript
+- MediaPipe
+- onnxruntime-web
+- WebAssembly (WASM)
+- HTML5 Video API
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## 🧩 Software design
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+![Class diagram](https://github.com/user-attachments/assets/200a6963-d85f-4e9a-b078-771bac0ca454)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+Os principais design patterns usados foram:
+- Factory Method
+- Singleton
+- Strategy
+- Facade

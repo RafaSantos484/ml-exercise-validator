@@ -69,10 +69,7 @@ function CameraComponent({
   const rafIdRef = useRef<number | null>(null);
   const lastVideoTimeRef = useRef<number>(-1);
 
-  // const [fps, setFps] = useState<number | null>(null);
   const prevFpsTimestampRef = useRef<number | null>(null);
-  // const [avgDetectionTime, setAvgDetectionTime] = useState<number | null>(null);
-  // const [avgPredictionTime, setAvgPredictionTime] = useState<number | null>(null);
 
   const times = useRef<Record<string, number[]>>({
     fps: [],
@@ -125,15 +122,13 @@ function CameraComponent({
       await model.load();
 
       video.onloadeddata = function () {
-        video.play().then(() => {
-          renderLoop();
-        });
+        video.play().then(renderLoop);
       };
       video.srcObject = stream;
       // video.ontimeupdate = renderLoop;
     };
 
-    const renderLoop = () => {
+    const renderLoop = async () => {
       if (!isMounted) return;
 
       if (
@@ -144,7 +139,6 @@ function CameraComponent({
         if (prevFpsTimestampRef.current !== null) {
           const elapsed = now - prevFpsTimestampRef.current;
           const _fps = 1000 / elapsed;
-          // setFps(Math.round(_fps));
           times.current.fps.push(_fps);
           if (times.current.fps.length > MAX_METRICS_ARR_SIZE) {
             times.current.fps.shift();
@@ -153,62 +147,44 @@ function CameraComponent({
         prevFpsTimestampRef.current = now;
 
         const detectionStart = performance.now();
-        const result = Landmarker.detect(video, now);
+        const result = await Landmarker.detect(video, now);
         const detectionEnd = performance.now();
-        // setAvgDetectionTime(detectionEnd - detectionStart);
         times.current.detection.push(detectionEnd - detectionStart);
         if (times.current.detection.length > MAX_METRICS_ARR_SIZE) {
           times.current.detection.shift();
         }
 
-        if (result && result.landmarks.length && result.worldLandmarks.length) {
+        if (result.landmarks.length && result.worldLandmarks.length) {
           setScreenDim({
             width: video.clientWidth,
             height: video.clientHeight,
           });
 
-          drawResults(result)
-            .then(() => {
-              if (isMounted) {
-                lastVideoTimeRef.current = video.currentTime;
-              }
-            })
-            .finally(() => {
-              if (isMounted) {
-                rafIdRef.current = requestAnimationFrame(renderLoop);
-              }
-            });
-
-          return;
+          drawResults(result);
+          await validateResults(result);
+          lastVideoTimeRef.current = video.currentTime;
         } else {
           setLandmarks([]);
           setConnections([]);
           setExerciseValidation(defaultValidationResult);
           prevFpsTimestampRef.current = null;
-          /*
-          times.current = {
-            fps: [],
-            detection: [],
-            prediction: [],
-          };
-          */
         }
       }
 
       rafIdRef.current = requestAnimationFrame(renderLoop);
     };
 
-    async function drawResults(results: PoseLandmarkerResult) {
+    function drawResults(results: PoseLandmarkerResult) {
       const [utilLandmarks, conenctions] = drafter.getDraftInfo(
         results.landmarks[0]
       );
       setLandmarks(utilLandmarks);
       setConnections(conenctions);
-
+    }
+    async function validateResults(results: PoseLandmarkerResult) {
       const predictionStart = performance.now();
       const validation = await model.predict(results.worldLandmarks[0]);
       const predictionEnd = performance.now();
-      // setAvgPredictionTime(predictionEnd - predictionStart);
       times.current.prediction.push(predictionEnd - predictionStart);
       if (times.current.prediction.length > MAX_METRICS_ARR_SIZE) {
         times.current.prediction.shift();
@@ -294,14 +270,6 @@ function CameraComponent({
 
           <div className="exercise-feedback-container">
             <div className="text-container">
-              {/*<span style={{ position: "absolute", top: 0, left: "1rem" }}>
-                FPS: {fps}
-                <br />
-                Landmarking: {avgDetectionTime?.toFixed(2)}ms
-                <br />
-                Predição: {avgPredictionTime?.toFixed(2)}ms
-              </span> */}
-
               <p style={{ color: exerciseValidation.color, margin: "auto" }}>
                 {exerciseValidation.text}
               </p>

@@ -19,20 +19,20 @@ export class Landmarker {
     }
   }
 
-  public static detect(videoEl: HTMLVideoElement, timestamp: number) {
-    const landmarker = this.poseLandmarker;
-    if (!landmarker) {
-      // this.load();
-      return null;
-    }
+  public static async getLandmarker() {
+    await this.load();
+    return this.poseLandmarker as PoseLandmarker;
+  }
 
+  public static async detect(videoEl: HTMLVideoElement, timestamp: number) {
+    const landmarker = await this.getLandmarker();
     return landmarker.detectForVideo(videoEl, timestamp);
   }
 
   public static close() {
-    const landmarker = this.poseLandmarker;
-    if (landmarker) {
-      landmarker.close();
+    if (this.poseLandmarker) {
+      this.poseLandmarker.close();
     }
+    this.poseLandmarker = undefined;
   }
 }

@@ -31,10 +31,7 @@ export class EnsembleModel implements Classifier {
         isCorrectBalance--;
       }
 
-      if (
-        (isCorrectBalance > 0 && isCorrectBalance > remaining) ||
-        (isCorrectBalance < 0 && -isCorrectBalance >= remaining)
-      ) {
+      if (isCorrectBalance > remaining || -isCorrectBalance >= remaining) {
         break; // Early exit if the result is already determined
       }
       remaining--;

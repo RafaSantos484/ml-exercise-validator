@@ -22,6 +22,7 @@ export class EnsembleModel implements Classifier {
     );
     */
     let isCorrectBalance = 0;
+    let remaining = this.models.length - 1;
     for (const model of this.models) {
       const result = await model.predict(landmarks);
       if (result.isCorrect) {
@@ -29,7 +30,16 @@ export class EnsembleModel implements Classifier {
       } else {
         isCorrectBalance--;
       }
+
+      if (
+        (isCorrectBalance > 0 && isCorrectBalance > remaining) ||
+        (isCorrectBalance < 0 && -isCorrectBalance >= remaining)
+      ) {
+        break; // Early exit if the result is already determined
+      }
+      remaining--;
     }
+
     return Utils.translate(isCorrectBalance > 0 ? "correct" : "incorrect");
   }
 }

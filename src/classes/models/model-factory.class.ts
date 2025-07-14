@@ -8,7 +8,6 @@ const FCNN = new KerasModel("/models/high-plank/fcnn/full_body_model.onnx", [
   "correct",
   "incorrect",
 ]);
-const KNN = new SklearnModel("/models/high-plank/knn/full_body_model.onnx");
 const randomForest = new SklearnModel(
   "/models/high-plank/random-forest/full_body_model.onnx"
 );
@@ -24,13 +23,11 @@ export class ModelFactory {
       Ensenble: new EnsembleModel(
         empirical,
         FCNN,
-        KNN,
         randomForest,
         logisticRegression,
         SVM
       ),
       FCNN,
-      KNN,
       "Random Forest": randomForest,
       "Regressão Logística": logisticRegression,
       SVM,

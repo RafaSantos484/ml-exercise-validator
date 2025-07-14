@@ -8,6 +8,9 @@ const FCNN = new KerasModel("/models/high-plank/fcnn/full_body_model.onnx", [
   "correct",
   "incorrect",
 ]);
+const gradientBoosting = new SklearnModel(
+  "/models/high-plank/gradient-boosting/full_body_model.onnx"
+);
 const randomForest = new SklearnModel(
   "/models/high-plank/random-forest/full_body_model.onnx"
 );
@@ -23,11 +26,13 @@ export class ModelFactory {
       Ensenble: new EnsembleModel(
         empirical,
         FCNN,
+        gradientBoosting,
         randomForest,
         logisticRegression,
         SVM
       ),
       FCNN,
+      "Gradient Boosting": gradientBoosting,
       "Random Forest": randomForest,
       "Regressão Logística": logisticRegression,
       SVM,

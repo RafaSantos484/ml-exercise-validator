@@ -160,8 +160,8 @@ function CameraComponent({
             height: video.clientHeight,
           });
 
-          drawResults(result);
           await validateResults(result);
+          drawResults(result);
           lastVideoTimeRef.current = video.currentTime;
         } else {
           setLandmarks([]);

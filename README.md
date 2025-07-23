@@ -6,6 +6,10 @@ Solução web que utiliza visão computacional e aprendizado de máquina para va
 
 Este projeto permite que usuários realizem exercícios físicos, como a prancha alta, enquanto recebem validações automáticas sobre a correção da postura. A validação é feita com base na detecção de pontos do corpo utilizando o BlazePose (MediaPipe) e modelos de inferência treinados previamente, como KNN, SVM, Random Forest, regressão logística, além de um modelo empírico baseado em regras como intervalos em que os ângulos se encontram. Os modelos de ML treinados em Python podem ser carregados no ambiente JavaScript dos navegadores utilizando o formato [ONNX](https://onnx.ai/).
 
+## 🌐 Teste Online
+
+Experimente a aplicação em tempo real: [ML Exercise Validator](https://ml-exercise-validator.vercel.app/)
+
 ## 🚀 Tecnologias Utilizadas
 
 - React
